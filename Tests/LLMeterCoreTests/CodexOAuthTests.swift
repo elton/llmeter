@@ -49,6 +49,26 @@ struct CodexOAuthTests {
         #expect(tokens.expiresAt == now.addingTimeInterval(864000))
     }
 
+    @Test func parseTokenResponseToleratesOmittedRefreshAndIdToken() throws {
+        // A non-rotating refresh may return only a new access token + expiry.
+        let now = Date(timeIntervalSince1970: 1_782_000_000)
+        let json = #"{"access_token":"new-access","expires_in":3600,"token_type":"Bearer"}"#
+        let tokens = try CodexOAuth.parseTokenResponse(Data(json.utf8), now: now)
+        #expect(tokens.accessToken == "new-access")
+        #expect(tokens.refreshToken == "")
+        #expect(tokens.idToken == "")
+        #expect(tokens.accountId == nil)
+        #expect(tokens.expiresAt == now.addingTimeInterval(3600))
+    }
+
+    @Test func loginGrantRequiresRefreshAndAccount() {
+        // The initial authorization-code login must carry refresh_token + account id.
+        let json = #"{"access_token":"a","expires_in":3600,"token_type":"Bearer"}"#
+        #expect(throws: CodexOAuthError.decode) {
+            try CodexOAuth.parseTokenResponse(Data(json.utf8), now: Date(), requireCompleteGrant: true)
+        }
+    }
+
     private func formDict(_ body: String) -> [String: String] {
         var out: [String: String] = [:]
         for pair in body.split(separator: "&") {

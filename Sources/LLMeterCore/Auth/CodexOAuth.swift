@@ -39,19 +39,29 @@ public enum CodexOAuth {
         form([("grant_type", "refresh_token"), ("refresh_token", refreshToken), ("client_id", clientID)])
     }
 
-    public static func parseTokenResponse(_ data: Data, now: Date) throws -> CodexTokens {
+    /// Parses a token endpoint response. Pass `requireCompleteGrant: true` for the
+    /// initial authorization-code login (must carry a refresh token + account id);
+    /// the lenient default suits the refresh grant, which may omit unchanged fields.
+    public static func parseTokenResponse(_ data: Data, now: Date, requireCompleteGrant: Bool = false) throws -> CodexTokens {
         struct Response: Decodable {
             let access_token: String
-            let refresh_token: String
-            let id_token: String
+            let refresh_token: String?   // may be omitted when not rotated
+            let id_token: String?        // may be omitted on refresh
             let expires_in: Double
         }
         guard let r = try? JSONDecoder().decode(Response.self, from: data) else { throw CodexOAuthError.decode }
-        return CodexTokens(
-            accessToken: r.access_token, refreshToken: r.refresh_token, idToken: r.id_token,
-            accountId: accountId(fromIDToken: r.id_token),
+        let idToken = r.id_token ?? ""
+        let tokens = CodexTokens(
+            accessToken: r.access_token,
+            refreshToken: r.refresh_token ?? "",
+            idToken: idToken,
+            accountId: accountId(fromIDToken: idToken),
             expiresAt: now.addingTimeInterval(r.expires_in)
         )
+        if requireCompleteGrant {
+            guard !tokens.refreshToken.isEmpty, tokens.accountId != nil else { throw CodexOAuthError.decode }
+        }
+        return tokens
     }
 
     /// Extracts chatgpt_account_id from the id_token's `https://api.openai.com/auth` claim.
