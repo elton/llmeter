@@ -12,8 +12,8 @@
 
 v1 支持：
 
-- **Codex**（ChatGPT 套餐）— 读 5h/周窗占用、重置、每模型子限额、credits。
-- **Claude**（Max/Pro 订阅）— 默认走合规模式；实时订阅配额为默认关闭的高级选项（见下方说明）。
+- **Codex**（ChatGPT 套餐）— 实时 5h / 周窗占用、重置倒计时、每模型子限额、credits。
+- **Claude** — **仅合规方式**：本地日志的近 5h / 7d / 今日用量与成本估算，及可选的 Console API key 用量。（**不**碰订阅 OAuth 凭证，因此不显示 Max 订阅的实时配额/重置——详见下方说明。）
 
 ## 设计原则 / 信任
 
@@ -26,10 +26,11 @@ v1 支持：
 
 ## ⚠️ 关于 Claude 的合规说明（请先读）
 
-Anthropic 的条款**禁止**在 Claude Code / 官方 App 之外的第三方工具中使用 Free/Pro/Max 订阅的 OAuth 凭证，并已在服务端执行（封号）。因此 LLMeter：
+Anthropic 的条款**禁止**在 Claude Code / 官方 App 之外的第三方工具中使用 Free/Pro/Max 订阅的 OAuth 凭证，并已在服务端执行（封号）。因此 LLMeter 在 Claude 端**只做合规的事**：
 
-- **默认**对 Claude 使用合规方式（本地日志的历史用量 / 可选的 Console API key）。
-- 「用订阅凭证拉取实时 Max 配额」是一个**默认关闭的高级开关**，开启前会明确提示封号风险，由你自担风险决定。
+- 只解析你本机的 Claude Code 日志，得到历史 token 用量与成本估算；可选地用你自己的 Console API key 看按量付费用量。
+- **完全不使用订阅 OAuth 凭证**：不调订阅用量端点、不做 `setup-token`、不读取 Claude Code 的 keychain 凭证。
+- 代价：Claude 端看不到 Max 订阅的实时剩余配额与重置时间（那只能通过被禁的方式获取）。我们选择零风险，把 Claude 定位为「用量统计」而非「配额仪表」。
 
 Codex 侧：OpenAI 未作等同限制（CLI 为 Apache-2.0、官方表示可 fork），但本工具同样坚持只读、礼貌轮询、忠实于官方请求形态。
 
