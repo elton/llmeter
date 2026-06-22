@@ -5,6 +5,8 @@ import LLMeterCore
 struct PanelView: View {
     let store: UsageStore
     @Bindable var settings: SettingsModel
+    let codexStore: CodexCredentialStore
+    let login: CodexLoginService
     @State private var selection: PanelSection = .overview
 
     var body: some View {
@@ -42,6 +44,8 @@ struct PanelView: View {
             OverviewView(store: store)
         case .provider(let provider):
             ProviderGridView(provider: provider, store: store)
+        case .accounts:
+            AccountsView(store: codexStore, login: login)
         case .settings:
             SettingsView(model: settings)
         }
@@ -51,6 +55,7 @@ struct PanelView: View {
         switch selection {
         case .overview: return "Overview"
         case .provider(let p): return p.displayName
+        case .accounts: return "Accounts"
         case .settings: return "Settings"
         }
     }

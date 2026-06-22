@@ -9,7 +9,7 @@ struct LLMeterApp: App {
     var body: some Scene {
         // Single-icon mode: one combined gauge.
         MenuBarExtra(isInserted: .constant(isSingle)) {
-            PanelView(store: delegate.store, settings: delegate.settings)
+            panel
         } label: {
             MenuBarLabel(status: delegate.store.status)
         }
@@ -17,18 +17,23 @@ struct LLMeterApp: App {
 
         // Multi-icon mode: one item per provider.
         MenuBarExtra(isInserted: .constant(isMulti)) {
-            PanelView(store: delegate.store, settings: delegate.settings)
+            panel
         } label: {
             ProviderMenuBarLabel(provider: .codex, label: providerLabel(.codex))
         }
         .menuBarExtraStyle(.window)
 
         MenuBarExtra(isInserted: .constant(isMulti)) {
-            PanelView(store: delegate.store, settings: delegate.settings)
+            panel
         } label: {
             ProviderMenuBarLabel(provider: .claude, label: providerLabel(.claude))
         }
         .menuBarExtraStyle(.window)
+    }
+
+    private var panel: some View {
+        PanelView(store: delegate.store, settings: delegate.settings,
+                  codexStore: delegate.codexStore, login: delegate.login)
     }
 
     private var isSingle: Bool { delegate.settings.settings.displayMode == .singleIcon }
@@ -42,12 +47,21 @@ struct LLMeterApp: App {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let settings: SettingsModel
     let store: UsageStore
+    let codexStore: CodexCredentialStore
+    let login: CodexLoginService
 
     override init() {
         let settingsModel = SettingsModel(store: UserDefaultsSettingsStore())
         self.settings = settingsModel
+
+        let credStore = CodexCredentialStore(keychain: SecAppKeychain())
+        self.codexStore = credStore
+        self.login = CodexLoginService(store: credStore,
+                                       openURL: { url in DispatchQueue.main.async { _ = NSWorkspace.shared.open(url) } })
+
+        let codexTokenProvider = CodexTokenProvider(store: credStore, http: URLSessionHTTPClient(), clock: SystemClock())
         self.store = UsageStore(
-            providers: [CodexProvider(), ClaudeProvider()],
+            providers: [CodexProvider(tokenProvider: codexTokenProvider), ClaudeProvider()],
             onAlerts: { alerts in
                 if settingsModel.settings.notificationsEnabled { Notifier.post(alerts) }
             }

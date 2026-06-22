@@ -4,6 +4,7 @@ import LLMeterCore
 enum PanelSection: Hashable {
     case overview
     case provider(ProviderID)
+    case accounts
     case settings
 }
 
@@ -16,6 +17,7 @@ struct SidebarView: View {
             item(.provider(.codex), "CODEX", "chevron.left.forwardslash.chevron.right")
             item(.provider(.claude), "CLAUDE", "sparkles")
             Spacer()
+            item(.accounts, "ACCOUNTS", "person.crop.circle")
             item(.settings, "SETTINGS", "slider.horizontal.3")
         }
         .padding(10)
