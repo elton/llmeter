@@ -66,13 +66,16 @@ public final class UsageStore {
         if !alerts.isEmpty { onAlerts(alerts) }
     }
 
-    /// Refreshes immediately, then every `interval` seconds until cancelled.
-    public func startPolling(everySeconds interval: Int) {
+    /// Refreshes immediately, then sleeps for whatever `interval()` returns each
+    /// cycle — so changing the poll interval at runtime takes effect on the next
+    /// cycle without restarting the app.
+    public func startPolling(interval: @escaping @MainActor () -> Int) {
         pollingTask?.cancel()
         pollingTask = Task { [weak self] in
             while !Task.isCancelled {
                 await self?.refresh()
-                try? await Task.sleep(for: .seconds(interval))
+                let seconds = max(1, interval())
+                try? await Task.sleep(for: .seconds(seconds))
             }
         }
     }

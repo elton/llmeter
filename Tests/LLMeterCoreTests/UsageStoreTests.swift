@@ -106,5 +106,19 @@ struct UsageStoreTests {
         await store.refresh()   // 75% — crosses 70
         #expect(received.map(\.threshold) == [70])
     }
+
+    @Test func pollingRepeatsWithDynamicInterval() async {
+        let snap = UsageSnapshot(provider: .codex,
+                                 windows: [UsageWindow(kind: .fiveHour, label: "5h", percent: 10)],
+                                 capturedAt: now, sourceLabel: "live")
+        let provider = CountingProvider(id: .codex, snapshot: snap, delaySeconds: 0.0)
+        let store = UsageStore(providers: [provider])
+
+        store.startPolling(interval: { 1 })
+        try? await Task.sleep(nanoseconds: 1_300_000_000)   // ~2 cycles at 1s
+        store.stopPolling()
+
+        #expect(await provider.fetchCount >= 2)
+    }
 }
 

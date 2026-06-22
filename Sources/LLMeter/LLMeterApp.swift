@@ -58,6 +58,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)   // menu-bar agent, no Dock icon
         Notifier.requestAuthorization()
-        store.startPolling(everySeconds: settings.settings.pollIntervalSeconds)
+        store.startPolling(interval: { [settings] in settings.settings.pollIntervalSeconds })
     }
 }

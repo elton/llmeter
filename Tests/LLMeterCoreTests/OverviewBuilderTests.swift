@@ -33,4 +33,31 @@ struct OverviewBuilderTests {
         let cards = OverviewBuilder.cards(from: [.codex: nil, .claude: nil], now: now)
         #expect(cards.allSatisfy { $0.kind == .plain && $0.value == "—" })
     }
+
+    @Test func claudePicksWidestUsageWindowRegardlessOfOrder() {
+        // Real Claude emits 5h, 7d, Today in that order — the overview must pick 7d (widest).
+        let claude = UsageSnapshot(provider: .claude, windows: [
+            UsageWindow(kind: .rolling, label: "5h", percent: nil, usedTokens: 26_000_000, estimatedCostUSD: 1),
+            UsageWindow(kind: .rolling, label: "7d", percent: nil, usedTokens: 345_000_000, estimatedCostUSD: 20),
+            UsageWindow(kind: .rolling, label: "Today", percent: nil, usedTokens: 35_000_000, estimatedCostUSD: 2),
+        ], capturedAt: now, sourceLabel: "local logs")
+
+        let cards = OverviewBuilder.cards(from: [.claude: claude], now: now)
+        let claudeCard = cards.first { $0.id == "overview-claude" }!
+        #expect(claudeCard.value == "345M tok")   // 7d (345M), not Today (35M) or 5h (26M)
+    }
+
+    @Test func claudeBreaksTokenTiesByCostPickingWidest() {
+        // usedTokens excludes cache reads, so 5h/7d/Today can tie on tokens; the 7d
+        // window (highest cost) must still win.
+        let claude = UsageSnapshot(provider: .claude, windows: [
+            UsageWindow(kind: .rolling, label: "5h", percent: nil, usedTokens: 100_000_000, estimatedCostUSD: 5),
+            UsageWindow(kind: .rolling, label: "7d", percent: nil, usedTokens: 100_000_000, estimatedCostUSD: 50),
+            UsageWindow(kind: .rolling, label: "Today", percent: nil, usedTokens: 100_000_000, estimatedCostUSD: 10),
+        ], capturedAt: now, sourceLabel: "local logs")
+
+        let cards = OverviewBuilder.cards(from: [.claude: claude], now: now)
+        let claudeCard = cards.first { $0.id == "overview-claude" }!
+        #expect(claudeCard.subtitle == "~$50.00")   // 7d (highest cost) wins the token tie
+    }
 }
