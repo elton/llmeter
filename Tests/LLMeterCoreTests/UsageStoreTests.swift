@@ -24,4 +24,20 @@ struct UsageStoreTests {
         #expect(store.lastRefresh != nil)
         #expect(store.isRefreshing == false)
     }
+
+    @Test func failedRefreshClearsPreviouslySuccessfulSnapshot() async {
+        let codex = UsageSnapshot(provider: .codex,
+                                  windows: [UsageWindow(kind: .fiveHour, label: "5h", percent: 50)],
+                                  capturedAt: now, sourceLabel: "live")
+        let provider = SequenceProvider(id: .codex, results: [.success(codex), .failure(.network("down"))])
+        let store = UsageStore(providers: [provider])
+
+        await store.refresh()
+        #expect(store.snapshots[.codex] != nil)        // first refresh succeeded
+
+        await store.refresh()
+        #expect(store.snapshots[.codex] == nil)        // failed refresh degraded it to unavailable
+        #expect(store.status.providers.first { $0.provider == .codex }?.text == "—")
+    }
 }
+

@@ -40,3 +40,20 @@ struct StubProvider: QuotaProvider {
     let result: Result<UsageSnapshot, ProviderError>
     func fetch() async -> Result<UsageSnapshot, ProviderError> { result }
 }
+
+/// Returns a different result on each `fetch()` call (last value repeats),
+/// so tests can simulate "succeeds, then fails".
+actor SequenceProvider: QuotaProvider {
+    nonisolated let id: ProviderID
+    private var results: [Result<UsageSnapshot, ProviderError>]
+
+    init(id: ProviderID, results: [Result<UsageSnapshot, ProviderError>]) {
+        self.id = id
+        self.results = results
+    }
+
+    func fetch() async -> Result<UsageSnapshot, ProviderError> {
+        if results.count > 1 { return results.removeFirst() }
+        return results.first ?? .failure(.unavailable)
+    }
+}

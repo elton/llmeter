@@ -25,8 +25,13 @@ public final class UsageStore {
         isRefreshing = true
         defer { isRefreshing = false }
         for provider in providers {
-            if case .success(let snap) = await provider.fetch() {
+            switch await provider.fetch() {
+            case .success(let snap):
                 snapshots[provider.id] = snap
+            case .failure:
+                // A failed refresh must not present a previously-cached snapshot as
+                // freshly refreshed — degrade this provider to unavailable instead.
+                snapshots[provider.id] = nil
             }
         }
         lastRefresh = Date()
