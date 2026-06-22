@@ -1,0 +1,8 @@
+{
+  "access_token": "fake-access-token",
+  "refresh_token": "rt.fake-refresh",
+  "id_token": "eyJhbGciOiJub25lIn0.eyJodHRwczovL2FwaS5vcGVuYWkuY29tL2F1dGgiOnsiY2hhdGdwdF9hY2NvdW50X2lkIjoidXNlci1GQUtFMDAwMCIsImNoYXRncHRfcGxhbl90eXBlIjoicHJvbGl0ZSJ9fQ.",
+  "token_type": "Bearer",
+  "expires_in": 864000,
+  "scope": "openid profile email offline_access api.connectors.read api.connectors.invoke"
+}
