@@ -19,14 +19,14 @@ struct LLMeterApp: App {
         MenuBarExtra(isInserted: .constant(isMulti)) {
             PanelView(store: delegate.store, settings: delegate.settings)
         } label: {
-            ProviderMenuBarLabel(label: providerLabel(.codex))
+            ProviderMenuBarLabel(provider: .codex, label: providerLabel(.codex))
         }
         .menuBarExtraStyle(.window)
 
         MenuBarExtra(isInserted: .constant(isMulti)) {
             PanelView(store: delegate.store, settings: delegate.settings)
         } label: {
-            ProviderMenuBarLabel(label: providerLabel(.claude))
+            ProviderMenuBarLabel(provider: .claude, label: providerLabel(.claude))
         }
         .menuBarExtraStyle(.window)
     }

@@ -2,15 +2,18 @@ import SwiftUI
 import LLMeterCore
 
 struct ProviderMenuBarLabel: View {
+    let provider: ProviderID
     let label: ProviderLabel?
 
     var body: some View {
-        Text(text)
+        Text("\(code)·\(label?.text ?? "—")")
             .foregroundStyle(Color(severity: label?.severity ?? .unknown))
     }
 
-    private var text: String {
-        guard let label else { return "—" }
-        return "\(label.provider.displayName.prefix(1))·\(label.text)"
+    private var code: String {
+        switch provider {
+        case .codex: return "Cx"
+        case .claude: return "Cl"
+        }
     }
 }
