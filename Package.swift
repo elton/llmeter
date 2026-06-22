@@ -7,11 +7,13 @@ let package = Package(
     products: [
         .library(name: "LLMeterCore", targets: ["LLMeterCore"]),
         .executable(name: "llmeter-probe", targets: ["llmeter-probe"]),
+        .executable(name: "llmeter-login", targets: ["llmeter-login"]),
         .executable(name: "LLMeter", targets: ["LLMeter"]),
     ],
     targets: [
         .target(name: "LLMeterCore"),
         .executableTarget(name: "llmeter-probe", dependencies: ["LLMeterCore"]),
+        .executableTarget(name: "llmeter-login", dependencies: ["LLMeterCore"]),
         .executableTarget(name: "LLMeter", dependencies: ["LLMeterCore"]),
         .testTarget(
             name: "LLMeterCoreTests",
