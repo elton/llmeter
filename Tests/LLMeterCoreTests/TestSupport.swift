@@ -34,3 +34,9 @@ func loadFixture(_ name: String) -> String {
     }
     return (try? String(contentsOf: url, encoding: .utf8)) ?? ""
 }
+
+struct StubProvider: QuotaProvider {
+    let id: ProviderID
+    let result: Result<UsageSnapshot, ProviderError>
+    func fetch() async -> Result<UsageSnapshot, ProviderError> { result }
+}
