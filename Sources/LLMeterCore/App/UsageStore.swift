@@ -21,10 +21,17 @@ public final class UsageStore {
         return MenuBarStatusBuilder.build(from: dict)
     }
 
+    /// Refreshes all providers. Runs inline in the caller's task so cancellation
+    /// (SwiftUI cancelling the popover `.task`, or `stopPolling()`) propagates into
+    /// in-flight provider work. If a sweep is already running, a concurrent caller
+    /// skips instead of starting a second, interleaving sweep — so older results
+    /// can never overwrite newer ones.
     public func refresh() async {
+        guard !isRefreshing else { return }
         isRefreshing = true
         defer { isRefreshing = false }
         for provider in providers {
+            if Task.isCancelled { return }
             switch await provider.fetch() {
             case .success(let snap):
                 snapshots[provider.id] = snap

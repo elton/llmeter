@@ -39,5 +39,21 @@ struct UsageStoreTests {
         #expect(store.snapshots[.codex] == nil)        // failed refresh degraded it to unavailable
         #expect(store.status.providers.first { $0.provider == .codex }?.text == "—")
     }
+
+    @Test func overlappingRefreshesRunAtMostOneSweep() async {
+        let snap = UsageSnapshot(provider: .codex,
+                                 windows: [UsageWindow(kind: .fiveHour, label: "5h", percent: 30)],
+                                 capturedAt: now, sourceLabel: "live")
+        let provider = CountingProvider(id: .codex, snapshot: snap, delaySeconds: 0.1)
+        let store = UsageStore(providers: [provider])
+
+        async let first: Void = store.refresh()
+        async let second: Void = store.refresh()
+        _ = await first
+        _ = await second
+
+        #expect(await provider.fetchCount == 1)        // concurrent caller skipped the in-flight sweep
+        #expect(store.snapshots[.codex]?.windows.first?.percent == 30)
+    }
 }
 

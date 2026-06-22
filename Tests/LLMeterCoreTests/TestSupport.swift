@@ -57,3 +57,24 @@ actor SequenceProvider: QuotaProvider {
         return results.first ?? .failure(.unavailable)
     }
 }
+
+/// Counts `fetch()` calls and delays each one, so tests can prove overlapping
+/// refreshes are coalesced into a single provider sweep.
+actor CountingProvider: QuotaProvider {
+    nonisolated let id: ProviderID
+    private let snapshot: UsageSnapshot
+    private let delayNanos: UInt64
+    private(set) var fetchCount = 0
+
+    init(id: ProviderID, snapshot: UsageSnapshot, delaySeconds: Double) {
+        self.id = id
+        self.snapshot = snapshot
+        self.delayNanos = UInt64(delaySeconds * 1_000_000_000)
+    }
+
+    func fetch() async -> Result<UsageSnapshot, ProviderError> {
+        fetchCount += 1
+        try? await Task.sleep(nanoseconds: delayNanos)
+        return .success(snapshot)
+    }
+}
