@@ -13,6 +13,14 @@ struct StubHTTPClient: HTTPClient {
     let result: Result<(Data, Int), Error>
 
     func get(_ request: HTTPRequest) async throws -> (Data, HTTPURLResponse) {
+        try respond(request)
+    }
+
+    func post(_ request: HTTPRequest, body: String) async throws -> (Data, HTTPURLResponse) {
+        try respond(request)
+    }
+
+    private func respond(_ request: HTTPRequest) throws -> (Data, HTTPURLResponse) {
         switch result {
         case .success(let (data, code)):
             let resp = HTTPURLResponse(url: request.url, statusCode: code,

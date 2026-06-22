@@ -1,0 +1,8 @@
+{
+  "access_token": "refreshed-access",
+  "refresh_token": "rt.refreshed",
+  "id_token": "",
+  "token_type": "Bearer",
+  "expires_in": 864000,
+  "scope": "openid profile email offline_access api.connectors.read api.connectors.invoke"
+}

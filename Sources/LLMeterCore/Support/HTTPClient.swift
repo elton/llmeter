@@ -12,6 +12,7 @@ public struct HTTPRequest: Sendable {
 
 public protocol HTTPClient: Sendable {
     func get(_ request: HTTPRequest) async throws -> (Data, HTTPURLResponse)
+    func post(_ request: HTTPRequest, body: String) async throws -> (Data, HTTPURLResponse)
 }
 
 public struct URLSessionHTTPClient: HTTPClient {
@@ -32,6 +33,15 @@ public struct URLSessionHTTPClient: HTTPClient {
 
     public func get(_ request: HTTPRequest) async throws -> (Data, HTTPURLResponse) {
         let (data, response) = try await session.data(for: Self.makeURLRequest(request))
+        guard let http = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
+        return (data, http)
+    }
+
+    public func post(_ request: HTTPRequest, body: String) async throws -> (Data, HTTPURLResponse) {
+        var req = Self.makeURLRequest(request)
+        req.httpMethod = "POST"
+        req.httpBody = Data(body.utf8)
+        let (data, response) = try await session.data(for: req)
         guard let http = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
         return (data, http)
     }
