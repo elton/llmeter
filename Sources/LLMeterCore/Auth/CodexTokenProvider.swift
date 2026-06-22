@@ -18,6 +18,9 @@ public struct CodexTokenProvider: Sendable {
         guard var tokens = store.load() else { return nil }
         if tokens.expiresAt <= clock.now.addingTimeInterval(60) {
             guard let refreshed = await refresh(tokens) else { return nil }
+            // If the user signed out (store cleared) or another refresh rotated the
+            // token during our network call, do NOT resurrect the old credentials.
+            guard let current = store.load(), current.refreshToken == tokens.refreshToken else { return nil }
             store.save(refreshed)
             tokens = refreshed
         }

@@ -43,4 +43,17 @@ struct CodexTokenProviderTests {
                                     clock: StubClock(now: now))
         #expect(await tp.validCredentials() == nil)
     }
+
+    @Test func refreshDoesNotResurrectClearedCredentials() async {
+        let store = CodexCredentialStore(keychain: InMemoryKeychain())
+        store.save(tokens(expiresAt: now.addingTimeInterval(-10)))   // expired → will refresh
+        let data = Data(loadFixture("codex-refresh-response.json").utf8)
+        // Simulate the user signing out (store cleared) during the refresh network call.
+        let http = SideEffectHTTPClient(onRequest: { store.clear() }, result: .success((data, 200)))
+        let tp = CodexTokenProvider(store: store, http: http, clock: StubClock(now: now))
+
+        let creds = await tp.validCredentials()
+        #expect(creds == nil)           // signed out mid-refresh → not resurrected
+        #expect(store.load() == nil)    // store stays cleared
+    }
 }

@@ -49,6 +49,34 @@ struct StubProvider: QuotaProvider {
     func fetch() async -> Result<UsageSnapshot, ProviderError> { result }
 }
 
+/// Routes responses by inspecting the request (e.g. the Authorization header).
+struct RoutingHTTPClient: HTTPClient {
+    let route: @Sendable (HTTPRequest) -> Result<(Data, Int), Error>
+    func get(_ r: HTTPRequest) async throws -> (Data, HTTPURLResponse) { try resolve(r) }
+    func post(_ r: HTTPRequest, body: String) async throws -> (Data, HTTPURLResponse) { try resolve(r) }
+    private func resolve(_ r: HTTPRequest) throws -> (Data, HTTPURLResponse) {
+        switch route(r) {
+        case .success(let (d, c)): return (d, HTTPURLResponse(url: r.url, statusCode: c, httpVersion: nil, headerFields: nil)!)
+        case .failure(let e): throw e
+        }
+    }
+}
+
+/// Runs a side effect on each request before returning a fixed result.
+struct SideEffectHTTPClient: HTTPClient {
+    let onRequest: @Sendable () -> Void
+    let result: Result<(Data, Int), Error>
+    func get(_ r: HTTPRequest) async throws -> (Data, HTTPURLResponse) { try resolve(r) }
+    func post(_ r: HTTPRequest, body: String) async throws -> (Data, HTTPURLResponse) { try resolve(r) }
+    private func resolve(_ r: HTTPRequest) throws -> (Data, HTTPURLResponse) {
+        onRequest()
+        switch result {
+        case .success(let (d, c)): return (d, HTTPURLResponse(url: r.url, statusCode: c, httpVersion: nil, headerFields: nil)!)
+        case .failure(let e): throw e
+        }
+    }
+}
+
 /// Returns a different result on each `fetch()` call (last value repeats),
 /// so tests can simulate "succeeds, then fails".
 actor SequenceProvider: QuotaProvider {

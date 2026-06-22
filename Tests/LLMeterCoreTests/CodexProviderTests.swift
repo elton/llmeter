@@ -99,4 +99,27 @@ struct CodexProviderTests {
         #expect(snap.sourceLabel == "live")
         #expect(snap.windows.first { $0.kind == .fiveHour }?.percent == 77)
     }
+
+    @Test func fallsBackToCLIWhenAppTokenRejected() async throws {
+        // A fresh app token that the server rejects (401) must fall back to a valid CLI login.
+        let auth = try tempAuthFile()   // CLI token = "fake-access-token-for-tests"
+        let store = CodexCredentialStore(keychain: InMemoryKeychain())
+        store.save(CodexTokens(accessToken: "app-access", refreshToken: "rt", idToken: "i",
+                               accountId: "app-acct", expiresAt: Date(timeIntervalSince1970: 1_782_999_999)))
+        let usage = Data(loadFixture("codex-wham-usage.json").utf8)
+        let http = RoutingHTTPClient { req in
+            let authz = req.headers["Authorization"] ?? ""
+            if authz.contains("app-access") { return .success((Data(), 401)) }                    // app token rejected
+            if authz.contains("fake-access-token-for-tests") { return .success((usage, 200)) }    // CLI ok
+            return .failure(StubHTTPClient.StubError.forced)
+        }
+        let nowStub = StubClock(now: Date(timeIntervalSince1970: 1_782_104_558))
+        let provider = CodexProvider(
+            http: http, clock: nowStub, authPath: auth,
+            sessionsDir: FileManager.default.temporaryDirectory.appending(path: "none-\(UUID().uuidString)"),
+            tokenProvider: CodexTokenProvider(store: store, http: http, clock: nowStub))
+
+        let snap = try #require(try? (await provider.fetch()).get())
+        #expect(snap.windows.first { $0.kind == .fiveHour }?.percent == 77)   // CLI data after app-token 401
+    }
 }

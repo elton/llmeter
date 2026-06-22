@@ -34,16 +34,23 @@ public struct CodexProvider: QuotaProvider {
     }
 
     private func fetchLive() async -> Result<UsageSnapshot, ProviderError> {
-        // Prefer an app-owned OAuth token (from in-app "Sign in with ChatGPT"),
-        // falling back to the local Codex CLI login.
-        let creds: CodexCredentials
+        // Prefer an app-owned OAuth token (from in-app "Sign in with ChatGPT"). If it
+        // is rejected (revoked / wrong account / missing scope / transient), fall back
+        // to the local Codex CLI login before giving up, so one bad keychain token
+        // never breaks working CLI-backed usage.
+        var appFailure: ProviderError?
         if let appCreds = await tokenProvider?.validCredentials() {
-            creds = appCreds
-        } else if let cli = try? CodexCredentialsReader.read(authJSONPath: authPath) {
-            creds = cli
-        } else {
-            return .failure(.noCredentials)
+            let result = await fetchUsage(with: appCreds)
+            if case .success = result { return result }
+            if case .failure(let error) = result { appFailure = error }
         }
+        if let cli = try? CodexCredentialsReader.read(authJSONPath: authPath) {
+            return await fetchUsage(with: cli)
+        }
+        return .failure(appFailure ?? .noCredentials)
+    }
+
+    private func fetchUsage(with creds: CodexCredentials) async -> Result<UsageSnapshot, ProviderError> {
         let request = HTTPRequest(url: Self.usageURL, headers: [
             "Authorization": "Bearer \(creds.accessToken)",
             "chatgpt-account-id": creds.accountId,
