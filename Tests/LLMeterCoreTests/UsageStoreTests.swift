@@ -92,5 +92,19 @@ struct UsageStoreTests {
         await task.value
         #expect(store.snapshots[.codex]?.windows.first?.percent == 40)  // preserved, not cleared
     }
+
+    @Test func refreshEmitsRisingThresholdAlerts() async {
+        func snap(_ pct: Double) -> UsageSnapshot {
+            UsageSnapshot(provider: .codex, windows: [UsageWindow(kind: .fiveHour, label: "5h", percent: pct)],
+                          capturedAt: now, sourceLabel: "live")
+        }
+        var received: [QuotaAlert] = []
+        let provider = SequenceProvider(id: .codex, results: [.success(snap(60)), .success(snap(75))])
+        let store = UsageStore(providers: [provider], onAlerts: { received.append(contentsOf: $0) })
+
+        await store.refresh()   // 60% — no crossing
+        await store.refresh()   // 75% — crosses 70
+        #expect(received.map(\.threshold) == [70])
+    }
 }
 

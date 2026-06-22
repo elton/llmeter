@@ -10,9 +10,12 @@ public final class UsageStore {
 
     @ObservationIgnored private let providers: [any QuotaProvider]
     @ObservationIgnored private var pollingTask: Task<Void, Never>?
+    @ObservationIgnored private let onAlerts: ([QuotaAlert]) -> Void
 
-    public init(providers: [any QuotaProvider]) {
+    public init(providers: [any QuotaProvider],
+                onAlerts: @escaping ([QuotaAlert]) -> Void = { _ in }) {
         self.providers = providers
+        self.onAlerts = onAlerts
     }
 
     public var status: MenuBarStatus {
@@ -30,6 +33,7 @@ public final class UsageStore {
     /// untouched, so a cancelled fetch never clears a still-good snapshot.
     public func refresh() async {
         guard !isRefreshing else { return }
+        let beforeSnapshots = snapshots
         isRefreshing = true
         defer { isRefreshing = false }
 
@@ -58,6 +62,8 @@ public final class UsageStore {
 
         if Task.isCancelled { return }
         lastRefresh = Date()
+        let alerts = NotificationDecider.alerts(previous: beforeSnapshots, current: snapshots)
+        if !alerts.isEmpty { onAlerts(alerts) }
     }
 
     /// Refreshes immediately, then every `interval` seconds until cancelled.
