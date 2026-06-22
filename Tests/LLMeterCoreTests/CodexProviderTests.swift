@@ -76,4 +76,27 @@ struct CodexProviderTests {
         let result = await provider.fetch()
         #expect(result == .failure(.noCredentials))
     }
+
+    @Test func prefersAppOAuthTokenOverCLI() async throws {
+        // App store has a fresh OAuth token AND a CLI auth.json is present — app token wins.
+        let auth = try tempAuthFile()
+        let store = CodexCredentialStore(keychain: InMemoryKeychain())
+        store.save(CodexTokens(accessToken: "app-access", refreshToken: "rt", idToken: "i",
+                               accountId: "app-acct", expiresAt: Date(timeIntervalSince1970: 1_782_999_999)))
+        let usage = Data(loadFixture("codex-wham-usage.json").utf8)
+        let nowStub = StubClock(now: Date(timeIntervalSince1970: 1_782_104_558))
+        let provider = CodexProvider(
+            http: StubHTTPClient(result: .success((usage, 200))),
+            clock: nowStub,
+            authPath: auth,
+            sessionsDir: FileManager.default.temporaryDirectory.appending(path: "none-\(UUID().uuidString)"),
+            tokenProvider: CodexTokenProvider(
+                store: store,
+                http: StubHTTPClient(result: .failure(StubHTTPClient.StubError.forced)),  // fresh → no refresh
+                clock: nowStub)
+        )
+        let snap = try #require(try? (await provider.fetch()).get())
+        #expect(snap.sourceLabel == "live")
+        #expect(snap.windows.first { $0.kind == .fiveHour }?.percent == 77)
+    }
 }

@@ -33,6 +33,8 @@ func printSnapshot(_ label: String, _ result: Result<UsageSnapshot, ProviderErro
     print("")
 }
 
+// Probe is a headless diagnostic; it reads the Codex CLI login only (the app-OAuth
+// token lives in the app's keychain and is read in-process by LLMeter.app).
 let codex = await CodexProvider().fetch()
 let claude = await ClaudeProvider().fetch()
 printSnapshot("CODEX", codex)

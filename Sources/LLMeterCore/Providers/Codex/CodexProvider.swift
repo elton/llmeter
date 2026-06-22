@@ -7,17 +7,20 @@ public struct CodexProvider: QuotaProvider {
     private let clock: Clock
     private let authPath: URL
     private let sessionsDir: URL
+    private let tokenProvider: CodexTokenProvider?
 
     private static let usageURL = URL(string: "https://chatgpt.com/backend-api/wham/usage")!
 
     public init(http: HTTPClient = URLSessionHTTPClient(),
                 clock: Clock = SystemClock(),
                 authPath: URL = CodexCredentialsReader.defaultPath,
-                sessionsDir: URL = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".codex/sessions")) {
+                sessionsDir: URL = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".codex/sessions"),
+                tokenProvider: CodexTokenProvider? = nil) {
         self.http = http
         self.clock = clock
         self.authPath = authPath
         self.sessionsDir = sessionsDir
+        self.tokenProvider = tokenProvider
     }
 
     public func fetch() async -> Result<UsageSnapshot, ProviderError> {
@@ -31,7 +34,14 @@ public struct CodexProvider: QuotaProvider {
     }
 
     private func fetchLive() async -> Result<UsageSnapshot, ProviderError> {
-        guard let creds = try? CodexCredentialsReader.read(authJSONPath: authPath) else {
+        // Prefer an app-owned OAuth token (from in-app "Sign in with ChatGPT"),
+        // falling back to the local Codex CLI login.
+        let creds: CodexCredentials
+        if let appCreds = await tokenProvider?.validCredentials() {
+            creds = appCreds
+        } else if let cli = try? CodexCredentialsReader.read(authJSONPath: authPath) {
+            creds = cli
+        } else {
             return .failure(.noCredentials)
         }
         let request = HTTPRequest(url: Self.usageURL, headers: [
