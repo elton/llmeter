@@ -48,6 +48,24 @@ struct CodexProviderTests {
         #expect(snap.windows.first { $0.kind == .fiveHour }?.percent == 50)  // from rollout
     }
 
+    @Test func fallsBackWhenLiveReturnsEmptyUsage() async throws {
+        // Live API answers 200 but with no usable rate_limit (schema drift) →
+        // must fall back to the cached rollout, not surface an empty live snapshot.
+        let auth = try tempAuthFile()
+        let sessions = try tempSessionsDirWithRollout()
+        let emptyBody = Data(#"{"plan_type":"prolite"}"#.utf8)
+        let provider = CodexProvider(
+            http: StubHTTPClient(result: .success((emptyBody, 200))),
+            clock: StubClock(now: Date(timeIntervalSince1970: 1_782_104_558)),
+            authPath: auth,
+            sessionsDir: sessions
+        )
+        let snap = try #require(try? (await provider.fetch()).get())
+        #expect(snap.isStale)
+        #expect(snap.sourceLabel == "local cache")
+        #expect(snap.windows.first { $0.kind == .fiveHour }?.percent == 50)  // from rollout
+    }
+
     @Test func failsWhenNoCredentialsAndNoRollout() async {
         let provider = CodexProvider(
             http: StubHTTPClient(result: .failure(StubHTTPClient.StubError.forced)),

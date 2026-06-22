@@ -30,4 +30,13 @@ struct CodexUsageMapperTests {
             try CodexUsageMapper.snapshot(from: Data("not json".utf8), capturedAt: Date(), sourceLabel: "live")
         }
     }
+
+    @Test func throwsWhenNoUsableWindows() {
+        // Valid JSON, HTTP 200, but no recognizable rate_limit fields → must throw,
+        // not return an empty snapshot.
+        let json = Data(#"{"plan_type":"prolite"}"#.utf8)
+        #expect(throws: CodexUsageMapperError.noUsableWindows) {
+            try CodexUsageMapper.snapshot(from: json, capturedAt: Date(), sourceLabel: "live")
+        }
+    }
 }

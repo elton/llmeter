@@ -1,5 +1,9 @@
 import Foundation
 
+public enum CodexUsageMapperError: Error, Equatable {
+    case noUsableWindows
+}
+
 public enum CodexUsageMapper {
     private struct Response: Decodable {
         let plan_type: String?
@@ -42,6 +46,13 @@ public enum CodexUsageMapper {
                 windows.append(UsageWindow(kind: .model, label: extra.limit_name ?? "model",
                                            percent: p.used_percent, resetsAt: resetDate(p, capturedAt)))
             }
+        }
+
+        // A 200 with no recognizable rate_limit fields (schema drift / partial
+        // response) must NOT pass as live data — fail so the caller falls back to
+        // the cached rollout instead of showing an empty Codex panel.
+        guard !windows.isEmpty else {
+            throw CodexUsageMapperError.noUsableWindows
         }
 
         return UsageSnapshot(provider: .codex, planType: r.plan_type, windows: windows,
