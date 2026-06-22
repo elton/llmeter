@@ -1,5 +1,6 @@
 import Foundation
 import CryptoKit
+import Security
 
 public enum PKCE {
     public static func base64URL(_ data: Data) -> String {
