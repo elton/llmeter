@@ -10,6 +10,7 @@ public final class UsageStore {
 
     @ObservationIgnored private let providers: [any QuotaProvider]
     @ObservationIgnored private var pollingTask: Task<Void, Never>?
+    @ObservationIgnored private var alertBaseline: [ProviderID: UsageSnapshot] = [:]
     @ObservationIgnored private let onAlerts: @MainActor ([QuotaAlert]) -> Void
 
     public init(providers: [any QuotaProvider],
@@ -33,10 +34,10 @@ public final class UsageStore {
     /// untouched, so a cancelled fetch never clears a still-good snapshot.
     public func refresh() async {
         guard !isRefreshing else { return }
-        let beforeSnapshots = snapshots
         isRefreshing = true
         defer { isRefreshing = false }
 
+        var freshThisSweep: [ProviderID: UsageSnapshot] = [:]
         await withTaskGroup(
             of: (ProviderID, Result<UsageSnapshot, ProviderError>).self
         ) { group in
@@ -52,6 +53,7 @@ public final class UsageStore {
                 switch result {
                 case .success(let snap):
                     snapshots[id] = snap
+                    freshThisSweep[id] = snap
                 case .failure:
                     // A genuine failure degrades this provider to unavailable rather
                     // than presenting a previously-cached snapshot as freshly refreshed.
@@ -62,7 +64,11 @@ public final class UsageStore {
 
         if Task.isCancelled { return }
         lastRefresh = Date()
-        let alerts = NotificationDecider.alerts(previous: beforeSnapshots, current: snapshots)
+        // Compare freshly-fetched windows against a baseline that survives failures,
+        // so a provider going briefly unavailable doesn't re-fire threshold alerts
+        // when it recovers at the same level.
+        let alerts = NotificationDecider.alerts(previous: alertBaseline, current: freshThisSweep)
+        for (id, snap) in freshThisSweep { alertBaseline[id] = snap }
         if !alerts.isEmpty { onAlerts(alerts) }
     }
 

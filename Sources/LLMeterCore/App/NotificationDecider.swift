@@ -30,7 +30,7 @@ public enum NotificationDecider {
                 let prevPct = prevWindows.first { $0.kind == window.kind && $0.label == window.label }?.percent ?? 0
                 for threshold in thresholds where prevPct < Double(threshold) && curPct >= Double(threshold) {
                     out.append(QuotaAlert(
-                        id: "\(provider.rawValue)-\(window.kind.rawValue)-\(threshold)",
+                        id: "\(provider.rawValue)-\(window.kind.rawValue)-\(window.label)-\(threshold)",
                         provider: provider, windowLabel: window.label,
                         threshold: threshold, percent: curPct
                     ))

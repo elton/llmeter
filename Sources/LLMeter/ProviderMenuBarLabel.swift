@@ -6,6 +6,7 @@ struct ProviderMenuBarLabel: View {
 
     var body: some View {
         Text(text)
+            .foregroundStyle(Color(severity: label?.severity ?? .unknown))
     }
 
     private var text: String {

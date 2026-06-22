@@ -38,4 +38,14 @@ struct NotificationDeciderTests {
         let alerts = NotificationDecider.alerts(previous: [:], current: [.codex: codex(92)])
         #expect(Set(alerts.map(\.threshold)) == [70, 90])
     }
+
+    @Test func modelWindowsGetUniqueAlertIds() {
+        let snap = UsageSnapshot(provider: .codex, windows: [
+            UsageWindow(kind: .model, label: "Model-A", percent: 95),
+            UsageWindow(kind: .model, label: "Model-B", percent: 95),
+        ], capturedAt: now, sourceLabel: "live")
+        let ids = NotificationDecider.alerts(previous: [:], current: [.codex: snap]).map(\.id)
+        #expect(ids.count == 4)          // 2 models × {70, 90}
+        #expect(Set(ids).count == 4)     // all unique
+    }
 }

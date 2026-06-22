@@ -120,5 +120,22 @@ struct UsageStoreTests {
 
         #expect(await provider.fetchCount >= 2)
     }
+
+    @Test func recoveryAfterFailureDoesNotRefireThreshold() async {
+        func snap(_ pct: Double) -> UsageSnapshot {
+            UsageSnapshot(provider: .codex, windows: [UsageWindow(kind: .fiveHour, label: "5h", percent: pct)],
+                          capturedAt: now, sourceLabel: "live")
+        }
+        var received: [QuotaAlert] = []
+        let provider = SequenceProvider(id: .codex,
+                                        results: [.success(snap(95)), .failure(.network("down")), .success(snap(96))])
+        let store = UsageStore(providers: [provider], onAlerts: { received.append(contentsOf: $0) })
+
+        await store.refresh()   // 95 — crosses 70 & 90 from baseline 0
+        await store.refresh()   // fails — display cleared, alert baseline keeps 95
+        await store.refresh()   // 96 — baseline 95, no new crossing
+
+        #expect(received.map(\.threshold) == [70, 90])   // not re-fired on recovery
+    }
 }
 
