@@ -1,6 +1,8 @@
 import Foundation
 import Network
 
+public enum CodexLoginError: Error, Equatable { case timedOut }
+
 /// Runs the Codex "Sign in with ChatGPT" PKCE flow: binds the loopback callback
 /// server on a registered port (1455, then 1457) BEFORE opening the browser,
 /// exchanges the code, and stores the tokens.
@@ -19,7 +21,7 @@ public struct CodexLoginService: Sendable {
     }
 
     @discardableResult
-    public func signIn() async throws -> CodexTokens {
+    public func signIn(timeoutSeconds: Double = 180) async throws -> CodexTokens {
         let verifier = PKCE.makeVerifier()
         let challenge = PKCE.challenge(forVerifier: verifier)
         let state = UUID().uuidString
@@ -32,7 +34,18 @@ public struct CodexLoginService: Sendable {
 
         openURL(CodexOAuth.authorizeURL(redirectURI: redirect, codeChallenge: challenge, state: state))
 
-        let code = try await server.waitForCode()
+        // Bounded wait: an abandoned/cancelled browser login times out and cleans up
+        // the listener instead of hanging the Accounts view forever.
+        let code = try await withThrowingTaskGroup(of: String.self) { group -> String in
+            group.addTask { try await server.waitForCode() }
+            group.addTask {
+                try await Task.sleep(for: .seconds(timeoutSeconds))
+                throw CodexLoginError.timedOut
+            }
+            defer { group.cancelAll() }
+            guard let first = try await group.next() else { throw CodexLoginError.timedOut }
+            return first
+        }
         let body = CodexOAuth.tokenExchangeBody(code: code, redirectURI: redirect, codeVerifier: verifier)
         let request = HTTPRequest(url: URL(string: "\(CodexOAuth.issuer)/oauth/token")!,
                                   headers: ["Content-Type": "application/x-www-form-urlencoded"])
@@ -98,19 +111,23 @@ final class LoopbackServer: @unchecked Sendable {
     }
 
     func waitForCode() async throws -> String {
-        try await withCheckedThrowingContinuation { cont in
-            lock.lock()
-            if let buffered = pendingCode {
-                pendingCode = nil
-                lock.unlock()
-                switch buffered {
-                case .success(let s): cont.resume(returning: s)
-                case .failure(let e): cont.resume(throwing: e)
+        try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { cont in
+                lock.lock()
+                if let buffered = pendingCode {
+                    pendingCode = nil
+                    lock.unlock()
+                    switch buffered {
+                    case .success(let s): cont.resume(returning: s)
+                    case .failure(let e): cont.resume(throwing: e)
+                    }
+                } else {
+                    codeCont = cont
+                    lock.unlock()
                 }
-            } else {
-                codeCont = cont
-                lock.unlock()
             }
+        } onCancel: {
+            resumeCode(.failure(CancellationError()))
         }
     }
 
