@@ -56,8 +56,6 @@ struct CodexProviderTests {
             sessionsDir: FileManager.default.temporaryDirectory.appending(path: "nope-dir-\(UUID().uuidString)")
         )
         let result = await provider.fetch()
-        var failed = false
-        if case .failure = result { failed = true }
-        #expect(failed)
+        #expect(result == .failure(.noCredentials))
     }
 }

@@ -18,7 +18,7 @@ public struct ClaudeProvider: QuotaProvider {
 
         func window(_ label: String, since: Date) -> UsageWindow {
             let slice = entries.filter { $0.timestamp >= since && $0.timestamp <= now }
-            let tokens = slice.reduce(0) { $0 + $1.totalTokens }
+            let tokens = slice.reduce(0) { $0 + $1.tokensExcludingCacheReads }
             let cost = slice.reduce(0.0) { $0 + ClaudePricing.cost($1) }
             return UsageWindow(kind: .rolling, label: label, percent: nil, resetsAt: nil,
                                usedTokens: tokens, estimatedCostUSD: cost)

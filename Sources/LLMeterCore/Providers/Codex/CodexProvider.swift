@@ -21,38 +21,59 @@ public struct CodexProvider: QuotaProvider {
     }
 
     public func fetch() async -> Result<UsageSnapshot, ProviderError> {
-        if let snap = await fetchLive() { return .success(snap) }
+        let live = await fetchLive()
+        if case .success(let snap) = live { return .success(snap) }
+        // Live failed — fall back to the most recent cached rollout if present.
         if let snap = fetchRolloutFallback() { return .success(snap) }
+        // Nothing usable: surface why the live fetch failed.
+        if case .failure(let error) = live { return .failure(error) }
         return .failure(.unavailable)
     }
 
-    private func fetchLive() async -> UsageSnapshot? {
-        guard let creds = try? CodexCredentialsReader.read(authJSONPath: authPath) else { return nil }
+    private func fetchLive() async -> Result<UsageSnapshot, ProviderError> {
+        guard let creds = try? CodexCredentialsReader.read(authJSONPath: authPath) else {
+            return .failure(.noCredentials)
+        }
         let request = HTTPRequest(url: Self.usageURL, headers: [
             "Authorization": "Bearer \(creds.accessToken)",
             "chatgpt-account-id": creds.accountId,
             "Accept": "application/json",
         ])
-        guard let (data, resp) = try? await http.get(request), resp.statusCode == 200 else { return nil }
-        return try? CodexUsageMapper.snapshot(from: data, capturedAt: clock.now, sourceLabel: "live")
+        guard let (data, resp) = try? await http.get(request) else {
+            return .failure(.network("request failed"))
+        }
+        guard resp.statusCode == 200 else {
+            return .failure(.network("HTTP \(resp.statusCode)"))
+        }
+        do {
+            return .success(try CodexUsageMapper.snapshot(from: data, capturedAt: clock.now, sourceLabel: "live"))
+        } catch {
+            return .failure(.decode("\(error)"))
+        }
     }
 
     private func fetchRolloutFallback() -> UsageSnapshot? {
-        guard let file = newestJSONL(in: sessionsDir),
-              let content = try? String(contentsOf: file, encoding: .utf8) else { return nil }
-        return CodexRolloutParser.snapshot(fromJSONL: content, capturedAt: clock.now)
+        // Try rollout files newest-first; return the first that yields a snapshot.
+        for file in rolloutFilesNewestFirst(in: sessionsDir) {
+            if let content = try? String(contentsOf: file, encoding: .utf8),
+               let snap = CodexRolloutParser.snapshot(fromJSONL: content, capturedAt: clock.now) {
+                return snap
+            }
+        }
+        return nil
     }
 
-    private func newestJSONL(in dir: URL) -> URL? {
+    private func rolloutFilesNewestFirst(in dir: URL) -> [URL] {
         let fm = FileManager.default
         guard let en = fm.enumerator(at: dir,
                                      includingPropertiesForKeys: [.contentModificationDateKey],
-                                     options: [.skipsHiddenFiles]) else { return nil }
-        var newest: (URL, Date)?
-        for case let url as URL in en where url.pathExtension == "jsonl" {
+                                     options: [.skipsHiddenFiles]) else { return [] }
+        var files: [(url: URL, modified: Date)] = []
+        for case let url as URL in en
+            where url.pathExtension == "jsonl" && url.lastPathComponent.hasPrefix("rollout-") {
             let mod = (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate ?? .distantPast
-            if newest == nil || mod > newest!.1 { newest = (url, mod) }
+            files.append((url, mod))
         }
-        return newest?.0
+        return files.sorted { $0.modified > $1.modified }.map(\.url)
     }
 }

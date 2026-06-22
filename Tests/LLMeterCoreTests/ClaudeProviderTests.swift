@@ -33,4 +33,21 @@ struct ClaudeProviderTests {
         let seven = try #require(snap.windows.first { $0.label == "7d" })
         #expect(seven.usedTokens == 3300)            // both entries
     }
+
+    @Test func usedTokensExcludeCacheReadsButCostCountsThem() async throws {
+        let base = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        let proj = base.appending(path: "p")
+        try FileManager.default.createDirectory(at: proj, withIntermediateDirectories: true)
+        // 1h ago: 10 input + 20 output + 30 cache-creation + 5000 cache-READ.
+        let jsonl = "{\"type\":\"assistant\",\"timestamp\":\"2026-06-22T02:00:00.000Z\",\"message\":{\"model\":\"claude-sonnet-4-6\",\"usage\":{\"input_tokens\":10,\"output_tokens\":20,\"cache_read_input_tokens\":5000,\"cache_creation_input_tokens\":30}}}\n"
+        try jsonl.write(to: proj.appending(path: "s.jsonl"), atomically: true, encoding: .utf8)
+
+        let now = ISO8601DateFormatter().date(from: "2026-06-22T03:00:00Z")!
+        let provider = ClaudeProvider(clock: StubClock(now: now), projectsDir: base)
+        let snap = try #require(try? (await provider.fetch()).get())
+
+        let five = try #require(snap.windows.first { $0.label == "5h" })
+        #expect(five.usedTokens == 60)                    // 10+20+30, the 5000 cache reads excluded
+        #expect((five.estimatedCostUSD ?? 0) > 0)         // cost still prices cache reads (discounted)
+    }
 }

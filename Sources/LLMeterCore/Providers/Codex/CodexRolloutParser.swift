@@ -1,6 +1,8 @@
 import Foundation
 
 public enum CodexRolloutParser {
+    // Field names mirror a real captured ~/.codex rollout `token_count` event:
+    // rate_limits.{primary,secondary}.{used_percent, window_minutes, resets_at}.
     private struct RateLimits: Decodable {
         let primary: Window?
         let secondary: Window?

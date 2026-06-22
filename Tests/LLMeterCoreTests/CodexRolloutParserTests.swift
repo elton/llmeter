@@ -23,4 +23,12 @@ struct CodexRolloutParserTests {
         let jsonl = "{\"type\":\"event_msg\",\"payload\":{\"message\":\"hi\"}}\n"
         #expect(CodexRolloutParser.snapshot(fromJSONL: jsonl, capturedAt: Date()) == nil)
     }
+
+    @Test func parsesTopLevelRateLimits() throws {
+        // Some events carry rate_limits at the top level rather than under `payload`.
+        let jsonl = "{\"type\":\"token_count\",\"rate_limits\":{\"primary\":{\"used_percent\":42.0,\"resets_at\":1782107036},\"secondary\":{\"used_percent\":7.0,\"resets_at\":1782693836}}}\n"
+        let snap = try #require(CodexRolloutParser.snapshot(fromJSONL: jsonl, capturedAt: Date()))
+        #expect(snap.windows.first { $0.kind == .fiveHour }?.percent == 42.0)
+        #expect(snap.windows.first { $0.kind == .weekly }?.percent == 7.0)
+    }
 }

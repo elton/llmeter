@@ -11,6 +11,13 @@ public struct ClaudeUsageEntry: Sendable, Equatable {
     public var totalTokens: Int {
         inputTokens + outputTokens + cacheReadTokens + cacheCreationTokens
     }
+
+    /// Tokens excluding cache *reads*. Cache reads are re-reads of already-cached
+    /// context that dominate the raw sum and misrepresent real throughput, so the
+    /// surfaced "used tokens" metric uses this. (Cost still prices cache reads, discounted.)
+    public var tokensExcludingCacheReads: Int {
+        inputTokens + outputTokens + cacheCreationTokens
+    }
 }
 
 public enum ClaudeLogParser {
