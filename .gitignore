@@ -29,3 +29,6 @@ secrets/
 
 # Misc
 *.log
+
+# 本地设计文档，不纳入版本库
+docs/

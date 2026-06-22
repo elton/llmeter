@@ -4,7 +4,7 @@
 >
 > A macOS menu bar gauge for your AI subscription quotas. See your Codex / Claude usage windows and reset times at a glance.
 
-**状态：早期开发中（设计已定稿，见 [`docs/superpowers/specs`](docs/superpowers/specs/)）。**
+**状态：早期开发中，设计已定稿。**
 
 ## 是什么
 
@@ -41,7 +41,7 @@ Codex 侧：OpenAI 未作等同限制（CLI 为 Apache-2.0、官方表示可 for
 
 ## 开发
 
-需要 macOS 14+ 与 Xcode。详见设计文档。
+需要 macOS 14+ 与 Xcode。
 
 ## 许可证
 
