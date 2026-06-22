@@ -4,6 +4,7 @@ import LLMeterCore
 
 struct PanelView: View {
     let store: UsageStore
+    @Bindable var settings: SettingsModel
     @State private var selection: PanelSection = .overview
 
     var body: some View {
@@ -42,11 +43,7 @@ struct PanelView: View {
         case .provider(let provider):
             ProviderGridView(provider: provider, store: store)
         case .settings:
-            VStack(spacing: 12) {
-                Text("Settings coming in M2b-2").foregroundStyle(.secondary)
-                Button("Quit LLMeter") { NSApplication.shared.terminate(nil) }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            SettingsView(model: settings)
         }
     }
 

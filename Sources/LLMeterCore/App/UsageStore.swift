@@ -10,10 +10,10 @@ public final class UsageStore {
 
     @ObservationIgnored private let providers: [any QuotaProvider]
     @ObservationIgnored private var pollingTask: Task<Void, Never>?
-    @ObservationIgnored private let onAlerts: ([QuotaAlert]) -> Void
+    @ObservationIgnored private let onAlerts: @MainActor ([QuotaAlert]) -> Void
 
     public init(providers: [any QuotaProvider],
-                onAlerts: @escaping ([QuotaAlert]) -> Void = { _ in }) {
+                onAlerts: @escaping @MainActor ([QuotaAlert]) -> Void = { _ in }) {
         self.providers = providers
         self.onAlerts = onAlerts
     }
