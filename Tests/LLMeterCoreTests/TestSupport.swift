@@ -78,3 +78,27 @@ actor CountingProvider: QuotaProvider {
         return .success(snapshot)
     }
 }
+
+/// Succeeds on the first fetch, then hangs (cancellable) on later calls,
+/// reporting failure if cancelled — mimics a real cancelled URLSession request.
+actor SucceedThenHangProvider: QuotaProvider {
+    nonisolated let id: ProviderID
+    private let snapshot: UsageSnapshot
+    private var calls = 0
+
+    init(id: ProviderID, snapshot: UsageSnapshot) {
+        self.id = id
+        self.snapshot = snapshot
+    }
+
+    func fetch() async -> Result<UsageSnapshot, ProviderError> {
+        calls += 1
+        if calls == 1 { return .success(snapshot) }
+        do {
+            try await Task.sleep(nanoseconds: 5_000_000_000)
+        } catch {
+            return .failure(.network("cancelled"))
+        }
+        return .success(snapshot)
+    }
+}

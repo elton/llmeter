@@ -55,5 +55,42 @@ struct UsageStoreTests {
         #expect(await provider.fetchCount == 1)        // concurrent caller skipped the in-flight sweep
         #expect(store.snapshots[.codex]?.windows.first?.percent == 30)
     }
+
+    @Test func fastProviderPublishesWithoutWaitingForSlowOne() async {
+        let fast = UsageSnapshot(provider: .claude,
+                                 windows: [UsageWindow(kind: .rolling, label: "7d", percent: nil, usedTokens: 500)],
+                                 capturedAt: now, sourceLabel: "local logs")
+        let slow = UsageSnapshot(provider: .codex,
+                                 windows: [UsageWindow(kind: .fiveHour, label: "5h", percent: 20)],
+                                 capturedAt: now, sourceLabel: "live")
+        let store = UsageStore(providers: [
+            CountingProvider(id: .claude, snapshot: fast, delaySeconds: 0.0),
+            CountingProvider(id: .codex, snapshot: slow, delaySeconds: 0.5),
+        ])
+
+        let task = Task { await store.refresh() }
+        try? await Task.sleep(nanoseconds: 150_000_000)        // fast done, slow still running
+        #expect(store.snapshots[.claude] != nil)               // fast published already
+        #expect(store.snapshots[.codex] == nil)                // slow not blocking it, not yet published
+
+        await task.value
+        #expect(store.snapshots[.codex] != nil)                // slow eventually published
+    }
+
+    @Test func cancelledRefreshKeepsLastGoodSnapshot() async {
+        let good = UsageSnapshot(provider: .codex,
+                                 windows: [UsageWindow(kind: .fiveHour, label: "5h", percent: 40)],
+                                 capturedAt: now, sourceLabel: "live")
+        let store = UsageStore(providers: [SucceedThenHangProvider(id: .codex, snapshot: good)])
+
+        await store.refresh()                                  // seeds the good snapshot
+        #expect(store.snapshots[.codex]?.windows.first?.percent == 40)
+
+        let task = Task { await store.refresh() }              // second sweep hangs in fetch
+        try? await Task.sleep(nanoseconds: 100_000_000)        // let it enter the hang
+        task.cancel()
+        await task.value
+        #expect(store.snapshots[.codex]?.windows.first?.percent == 40)  // preserved, not cleared
+    }
 }
 
