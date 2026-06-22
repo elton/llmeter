@@ -8,7 +8,7 @@ struct LLMeterApp: App {
 
     var body: some Scene {
         MenuBarExtra {
-            PopoverView(store: delegate.store)
+            PanelView(store: delegate.store)
         } label: {
             MenuBarLabel(status: delegate.store.status)
         }
