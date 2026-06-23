@@ -25,4 +25,12 @@ public struct ProviderCard: Equatable, Sendable, Identifiable {
         self.subtitle = subtitle
         self.severity = severity
     }
+
+    /// Value-line text for a percent gauge. The ring already renders used %, so the
+    /// value line shows what's *left* (mirroring ChatGPT's "% remaining" framing).
+    /// Centralized so the overview tile and the detail panel never diverge on the
+    /// used-vs-remaining framing for the same window.
+    public static func remainingValue(usedPercent: Double?) -> String {
+        "\(max(0, 100 - Int(usedPercent ?? 0)))% left"
+    }
 }

@@ -12,7 +12,8 @@ public enum OverviewBuilder {
             if let worst = snap.windows.filter({ $0.percent != nil }).max(by: { ($0.percent ?? 0) < ($1.percent ?? 0) }) {
                 return ProviderCard(
                     id: "overview-\(provider.rawValue)", title: provider.displayName.uppercased(),
-                    kind: .gauge, percent: worst.percent, value: "\(Int(worst.percent ?? 0))%",
+                    kind: .gauge, percent: worst.percent,
+                    value: ProviderCard.remainingValue(usedPercent: worst.percent),
                     subtitle: ResetCountdown.format(worst.resetsAt, now: now), severity: worst.severity
                 )
             }

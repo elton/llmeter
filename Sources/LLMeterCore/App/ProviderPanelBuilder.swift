@@ -19,13 +19,12 @@ public enum ProviderPanelBuilder {
             case .model:    title = window.label.uppercased(); idSuffix = "model-\(window.label)"
             case .rolling:  title = window.label.uppercased(); idSuffix = "rolling-\(window.label)"
             }
-            let pct = window.percent ?? 0
             cards.append(ProviderCard(
                 id: "codex-\(idSuffix)",
                 title: title,
                 kind: .gauge,
                 percent: window.percent,
-                value: "\(Int(pct))%",
+                value: ProviderCard.remainingValue(usedPercent: window.percent),
                 subtitle: ResetCountdown.format(window.resetsAt, now: now),
                 severity: window.severity
             ))

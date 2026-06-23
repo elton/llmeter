@@ -20,7 +20,7 @@ struct OverviewBuilderTests {
         let c = cards[0]
         #expect(c.title == "CODEX")
         #expect(c.kind == .gauge)
-        #expect(c.value == "77%")           // worst window
+        #expect(c.value == "23% left")      // worst window (77% used → 23% remaining)
         #expect(c.severity == .warning)
 
         let cl = cards[1]

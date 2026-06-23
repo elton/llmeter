@@ -17,8 +17,8 @@ struct ProviderPanelBuilderTests {
         let five = cards.first { $0.id == "codex-fiveHour" }!
         #expect(five.kind == .gauge)
         #expect(five.title == "5-HOUR")
-        #expect(five.percent == 77)
-        #expect(five.value == "77%")
+        #expect(five.percent == 77)             // ring still shows used %
+        #expect(five.value == "23% left")       // value line shows what's remaining
         #expect(five.subtitle == "resets in 41m")
         #expect(five.severity == .warning)
 
