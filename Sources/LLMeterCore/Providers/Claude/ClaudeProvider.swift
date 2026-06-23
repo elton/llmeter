@@ -5,11 +5,14 @@ public struct ClaudeProvider: QuotaProvider {
 
     private let clock: Clock
     private let projectsDir: URL
+    private let cache: ClaudeLogCache
 
     public init(clock: Clock = SystemClock(),
-                projectsDir: URL = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".claude/projects")) {
+                projectsDir: URL = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".claude/projects"),
+                cache: ClaudeLogCache = ClaudeLogCache()) {
         self.clock = clock
         self.projectsDir = projectsDir
+        self.cache = cache
     }
 
     public func fetch() async -> Result<UsageSnapshot, ProviderError> {
@@ -36,15 +39,34 @@ public struct ClaudeProvider: QuotaProvider {
 
     private func loadAllEntries() -> [ClaudeUsageEntry] {
         let fm = FileManager.default
+        // The widest window we report is 7 days. Claude Code logs are append-only, so
+        // a file last modified before that window cannot hold any in-window entry —
+        // skip it instead of re-reading the entire history (gigabytes for heavy users)
+        // on every refresh. The 1h slack absorbs clock/timezone skew at the boundary.
+        let cutoff = clock.now.addingTimeInterval(-7 * 86400 - 3600)
         guard let en = fm.enumerator(at: projectsDir,
-                                     includingPropertiesForKeys: nil,
+                                     includingPropertiesForKeys: [.contentModificationDateKey],
                                      options: [.skipsHiddenFiles]) else { return [] }
         var entries: [ClaudeUsageEntry] = []
+        var seen: Set<URL> = []
         for case let url as URL in en where url.pathExtension == "jsonl" {
-            if let content = try? String(contentsOf: url, encoding: .utf8) {
-                entries.append(contentsOf: ClaudeLogParser.entries(fromJSONL: content))
+            let mod = (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
+            if let mod, mod < cutoff { continue }
+            guard let mod else {
+                // No mtime to key the cache on — read directly, uncached.
+                if let content = try? String(contentsOf: url, encoding: .utf8) {
+                    entries.append(contentsOf: ClaudeLogParser.entries(fromJSONL: content))
+                }
+                continue
             }
+            // Re-parse only when the file changed since last refresh; otherwise reuse.
+            seen.insert(url)
+            entries.append(contentsOf: cache.entries(for: url, modifiedAt: mod) {
+                guard let content = try? String(contentsOf: url, encoding: .utf8) else { return [] }
+                return ClaudeLogParser.entries(fromJSONL: content)
+            })
         }
+        cache.prune(keeping: seen)
         return entries
     }
 }
