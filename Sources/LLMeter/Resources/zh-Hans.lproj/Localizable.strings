@@ -10,11 +10,11 @@
 
 /* Accounts */
 "accounts.account" = "账户";
-"accounts.tokenExpires" = "令牌过期";
+"accounts.tokenExpires" = "过期时间";
 "accounts.signOut" = "退出登录";
-"accounts.notSignedIn" = "未登录 — 若本机有 Codex CLI 登录则使用它。";
+"accounts.notSignedIn" = "未登录 — 将使用本机 Codex CLI 的登录（如有）。";
 "accounts.signIn" = "使用 ChatGPT 登录";
-"accounts.reauthenticate" = "重新认证";
+"accounts.reauthenticate" = "重新登录";
 "accounts.waitingLogin" = "等待浏览器登录…";
 "accounts.claudeLocal" = "本地日志 — 无需登录。";
 
@@ -34,7 +34,7 @@
 
 /* Notifications */
 "notif.title" = "%1$@ %2$@ 已达 %3$d%%";
-"notif.body" = "你已超过该周期的 %d%%。";
+"notif.body" = "本周期用量已超过 %d%%。";
 
 /* Language picker */
 "language.system" = "跟随系统";

@@ -1,0 +1,27 @@
+/* Codex window titles */
+"window.fiveHour" = "5時間";
+"window.weekly" = "週間";
+
+/* Claude rolling-window titles */
+"window.claude.5h" = "5時間";
+"window.claude.7d" = "7日間";
+"window.claude.today" = "今日";
+
+/* Synthetic fallback when a per-model sub-limit has no name from the API */
+"window.model" = "モデル";
+
+/* Card section titles */
+"card.plan" = "プラン";
+"card.credits" = "クレジット";
+
+/* Gauge value line: remaining percent. %d = remaining. */
+"card.remaining" = "残り%d%%";
+
+/* Claude usage: %@ = compact token count. */
+"card.tokens" = "%@ トークン";
+
+/* Reset countdown. %1$d / %2$d are the larger / smaller unit. */
+"reset.now" = "リセット済み";
+"reset.days" = "%1$d日%2$d時間後にリセット";
+"reset.hours" = "%1$d時間%2$d分後にリセット";
+"reset.minutes" = "%d分後にリセット";

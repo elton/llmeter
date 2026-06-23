@@ -1,0 +1,27 @@
+/* Codex window titles */
+"window.fiveHour" = "5시간";
+"window.weekly" = "주간";
+
+/* Claude rolling-window titles */
+"window.claude.5h" = "5시간";
+"window.claude.7d" = "7일";
+"window.claude.today" = "오늘";
+
+/* Synthetic fallback when a per-model sub-limit has no name from the API */
+"window.model" = "모델";
+
+/* Card section titles */
+"card.plan" = "요금제";
+"card.credits" = "크레딧";
+
+/* Gauge value line: remaining percent. %d = remaining. */
+"card.remaining" = "%d%% 남음";
+
+/* Claude usage: %@ = compact token count. */
+"card.tokens" = "%@ 토큰";
+
+/* Reset countdown. %1$d / %2$d are the larger / smaller unit. */
+"reset.now" = "지금 초기화";
+"reset.days" = "%1$d일 %2$d시간 후 초기화";
+"reset.hours" = "%1$d시간 %2$d분 후 초기화";
+"reset.minutes" = "%d분 후 초기화";

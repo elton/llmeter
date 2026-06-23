@@ -3,13 +3,15 @@ import Foundation
 public struct QuotaAlert: Equatable, Sendable, Identifiable {
     public let id: String
     public let provider: ProviderID
+    public let windowKind: WindowKind
     public let windowLabel: String
     public let threshold: Int
     public let percent: Double
 
-    public init(id: String, provider: ProviderID, windowLabel: String, threshold: Int, percent: Double) {
+    public init(id: String, provider: ProviderID, windowKind: WindowKind, windowLabel: String, threshold: Int, percent: Double) {
         self.id = id
         self.provider = provider
+        self.windowKind = windowKind
         self.windowLabel = windowLabel
         self.threshold = threshold
         self.percent = percent
@@ -31,7 +33,7 @@ public enum NotificationDecider {
                 for threshold in thresholds where prevPct < Double(threshold) && curPct >= Double(threshold) {
                     out.append(QuotaAlert(
                         id: "\(provider.rawValue)-\(window.kind.rawValue)-\(window.label)-\(threshold)",
-                        provider: provider, windowLabel: window.label,
+                        provider: provider, windowKind: window.kind, windowLabel: window.label,
                         threshold: threshold, percent: curPct
                     ))
                 }

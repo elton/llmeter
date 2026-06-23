@@ -12,7 +12,7 @@ let package = Package(
         .executable(name: "LLMeter", targets: ["LLMeter"]),
     ],
     targets: [
-        .target(name: "LLMeterCore"),
+        .target(name: "LLMeterCore", resources: [.process("Resources")]),
         .executableTarget(name: "llmeter-probe", dependencies: ["LLMeterCore"]),
         .executableTarget(name: "llmeter-login", dependencies: ["LLMeterCore"]),
         .executableTarget(name: "LLMeter", dependencies: ["LLMeterCore"],

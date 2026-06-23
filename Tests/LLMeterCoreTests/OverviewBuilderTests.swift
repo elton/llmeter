@@ -26,7 +26,7 @@ struct OverviewBuilderTests {
         let cl = cards[1]
         #expect(cl.title == "CLAUDE")
         #expect(cl.kind == .usage)
-        #expect(cl.value == "346M tok")     // 7d usage
+        #expect(cl.value == "346M tokens")     // 7d usage
     }
 
     @Test func unavailableProviderShownPlain() {
@@ -44,7 +44,7 @@ struct OverviewBuilderTests {
 
         let cards = OverviewBuilder.cards(from: [.claude: claude], now: now)
         let claudeCard = cards.first { $0.id == "overview-claude" }!
-        #expect(claudeCard.value == "345M tok")   // 7d (345M), not Today (35M) or 5h (26M)
+        #expect(claudeCard.value == "345M tokens")   // 7d (345M), not Today (35M) or 5h (26M)
     }
 
     @Test func claudeBreaksTokenTiesByCostPickingWidest() {

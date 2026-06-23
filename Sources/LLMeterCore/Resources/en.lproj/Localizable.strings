@@ -1,0 +1,27 @@
+/* Codex window titles */
+"window.fiveHour" = "5-HOUR";
+"window.weekly" = "WEEKLY";
+
+/* Claude rolling-window titles */
+"window.claude.5h" = "5H";
+"window.claude.7d" = "7D";
+"window.claude.today" = "TODAY";
+
+/* Synthetic fallback when a per-model sub-limit has no name from the API */
+"window.model" = "MODEL";
+
+/* Card section titles */
+"card.plan" = "PLAN";
+"card.credits" = "CREDITS";
+
+/* Gauge value line: remaining percent (the ring shows used %). %d = remaining. */
+"card.remaining" = "%d%% left";
+
+/* Claude usage: %@ = compact token count (e.g. "346M"). */
+"card.tokens" = "%@ tokens";
+
+/* Reset countdown. %1$d / %2$d are the larger / smaller unit. */
+"reset.now" = "resets now";
+"reset.days" = "resets in %1$dd %2$dh";
+"reset.hours" = "resets in %1$dh %2$dm";
+"reset.minutes" = "resets in %dm";

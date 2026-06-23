@@ -9,15 +9,15 @@ struct LocalizationManagerTests {
     }
 
     @Test func defaultsToSystemWhenNothingStored() {
-        let m = LocalizationManager(defaults: tempDefaults())
+        let m = LocalizationManager(defaults: tempDefaults(), localizer: Localizer())
         #expect(m.language == .system)
         #expect(m.language.code == nil)
     }
 
     @Test func persistsAndReloadsChosenLanguage() {
         let defaults = tempDefaults()
-        LocalizationManager(defaults: defaults).language = .ja
-        let reloaded = LocalizationManager(defaults: defaults)
+        LocalizationManager(defaults: defaults, localizer: Localizer()).language = .ja
+        let reloaded = LocalizationManager(defaults: defaults, localizer: Localizer())
         #expect(reloaded.language == .ja)
         #expect(reloaded.language.code == "ja")
     }

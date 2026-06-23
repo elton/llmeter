@@ -1,0 +1,27 @@
+/* Codex window titles */
+"window.fiveHour" = "5 小时";
+"window.weekly" = "每周";
+
+/* Claude rolling-window titles */
+"window.claude.5h" = "5 小时";
+"window.claude.7d" = "7 天";
+"window.claude.today" = "今日";
+
+/* Synthetic fallback when a per-model sub-limit has no name from the API */
+"window.model" = "模型";
+
+/* Card section titles */
+"card.plan" = "套餐";
+"card.credits" = "额度";
+
+/* Gauge value line: remaining percent. %d = remaining. */
+"card.remaining" = "剩 %d%%";
+
+/* Claude usage: %@ = compact token count. */
+"card.tokens" = "%@ tokens";
+
+/* Reset countdown. %1$d / %2$d are the larger / smaller unit. */
+"reset.now" = "已重置";
+"reset.days" = "%1$d天%2$d小时后重置";
+"reset.hours" = "%1$d小时%2$d分钟后重置";
+"reset.minutes" = "%d分钟后重置";

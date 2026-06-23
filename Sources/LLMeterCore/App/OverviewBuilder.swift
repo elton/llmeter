@@ -28,7 +28,7 @@ public enum OverviewBuilder {
             let tokens = usage?.usedTokens ?? 0
             return ProviderCard(
                 id: "overview-\(provider.rawValue)", title: provider.displayName.uppercased(),
-                kind: .usage, value: "\(MenuBarStatusBuilder.compact(tokens)) tok",
+                kind: .usage, value: L("card.tokens", MenuBarStatusBuilder.compact(tokens)),
                 subtitle: usage?.estimatedCostUSD.map { String(format: "~$%.2f", $0) }, severity: .unknown
             )
         }

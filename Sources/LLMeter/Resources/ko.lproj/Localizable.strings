@@ -12,7 +12,7 @@
 "accounts.account" = "계정";
 "accounts.tokenExpires" = "토큰 만료";
 "accounts.signOut" = "로그아웃";
-"accounts.notSignedIn" = "로그인되지 않음 — Codex CLI 로그인이 있으면 사용합니다.";
+"accounts.notSignedIn" = "로그인되지 않음 — Codex CLI 로그인 정보가 있으면 이를 사용합니다.";
 "accounts.signIn" = "ChatGPT로 로그인";
 "accounts.reauthenticate" = "재인증";
 "accounts.waitingLogin" = "브라우저 로그인 대기 중…";
@@ -33,7 +33,7 @@
 "provider.noData" = "%@ 데이터가 없습니다.";
 
 /* Notifications */
-"notif.title" = "%1$@ %2$@ %3$d%% 도달";
+"notif.title" = "%1$@ %2$@ %3$d%%에 도달";
 "notif.body" = "이 기간의 %d%%를 초과했습니다.";
 
 /* Language picker */

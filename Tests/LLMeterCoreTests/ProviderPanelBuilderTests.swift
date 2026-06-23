@@ -40,9 +40,9 @@ struct ProviderPanelBuilderTests {
         #expect(five.kind == .usage)
         #expect(five.title == "5H")
         #expect(five.percent == nil)
-        #expect(five.value == "26M tok")
+        #expect(five.value == "26M tokens")
         #expect(five.subtitle == "~$1375.13")
         #expect(five.severity == .unknown)
-        #expect(cards.contains { $0.title == "7D" && $0.value == "346M tok" })
+        #expect(cards.contains { $0.title == "7D" && $0.value == "346M tokens" })
     }
 }

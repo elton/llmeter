@@ -33,7 +33,7 @@
 "provider.noData" = "%@ のデータがありません。";
 
 /* Notifications */
-"notif.title" = "%1$@ %2$@ が %3$d%%";
+"notif.title" = "%1$@ %2$@: %3$d%%";
 "notif.body" = "この期間の %d%% を超えました。";
 
 /* Language picker */

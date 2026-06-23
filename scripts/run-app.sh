@@ -33,6 +33,7 @@ cp "$BIN" "$MACOS/LLMeter"
 # the .app root so the wrapped app is self-contained (otherwise it only works on
 # this machine via the hard-coded .build fallback path, and crashes elsewhere).
 for b in "$BIN_DIR"/*.bundle; do
+    case "$b" in *Tests.bundle) continue ;; esac   # skip test resource bundles
     [ -e "$b" ] && cp -R "$b" "$APP/"
 done
 

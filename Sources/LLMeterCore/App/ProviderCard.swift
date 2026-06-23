@@ -31,6 +31,6 @@ public struct ProviderCard: Equatable, Sendable, Identifiable {
     /// Centralized so the overview tile and the detail panel never diverge on the
     /// used-vs-remaining framing for the same window.
     public static func remainingValue(usedPercent: Double?) -> String {
-        "\(max(0, 100 - Int(usedPercent ?? 0)))% left"
+        L("card.remaining", max(0, 100 - Int(usedPercent ?? 0)))
     }
 }
