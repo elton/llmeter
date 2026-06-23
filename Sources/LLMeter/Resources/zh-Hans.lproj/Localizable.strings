@@ -1,0 +1,40 @@
+/* Sidebar */
+"sidebar.overview" = "概览";
+"sidebar.accounts" = "账户";
+"sidebar.settings" = "设置";
+
+/* Panel titles */
+"panel.overview" = "概览";
+"panel.accounts" = "账户";
+"panel.settings" = "设置";
+
+/* Accounts */
+"accounts.account" = "账户";
+"accounts.tokenExpires" = "令牌过期";
+"accounts.signOut" = "退出登录";
+"accounts.notSignedIn" = "未登录 — 若本机有 Codex CLI 登录则使用它。";
+"accounts.signIn" = "使用 ChatGPT 登录";
+"accounts.reauthenticate" = "重新认证";
+"accounts.waitingLogin" = "等待浏览器登录…";
+"accounts.claudeLocal" = "本地日志 — 无需登录。";
+
+/* Settings */
+"settings.menuBar" = "菜单栏";
+"settings.singleIcon" = "单个图标";
+"settings.onePerProvider" = "每个服务一个";
+"settings.refreshEvery" = "刷新间隔";
+"settings.notify" = "在 70% / 90% 时通知";
+"settings.launchAtLogin" = "开机自启";
+"settings.quit" = "退出 LLMeter";
+"settings.language" = "语言";
+
+/* Provider grid */
+"provider.unavailable" = "不可用";
+"provider.noData" = "暂无 %@ 的数据。";
+
+/* Notifications */
+"notif.title" = "%1$@ %2$@ 已达 %3$d%%";
+"notif.body" = "你已超过该周期的 %d%%。";
+
+/* Language picker */
+"language.system" = "跟随系统";

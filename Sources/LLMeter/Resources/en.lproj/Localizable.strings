@@ -1,0 +1,40 @@
+/* Sidebar (uppercase for style) */
+"sidebar.overview" = "OVERVIEW";
+"sidebar.accounts" = "ACCOUNTS";
+"sidebar.settings" = "SETTINGS";
+
+/* Panel titles */
+"panel.overview" = "Overview";
+"panel.accounts" = "Accounts";
+"panel.settings" = "Settings";
+
+/* Accounts */
+"accounts.account" = "Account";
+"accounts.tokenExpires" = "Token expires";
+"accounts.signOut" = "Sign out";
+"accounts.notSignedIn" = "Not signed in — uses the Codex CLI login if present.";
+"accounts.signIn" = "Sign in with ChatGPT";
+"accounts.reauthenticate" = "Re-authenticate";
+"accounts.waitingLogin" = "Waiting for browser login…";
+"accounts.claudeLocal" = "Local logs — no sign-in needed.";
+
+/* Settings */
+"settings.menuBar" = "Menu bar";
+"settings.singleIcon" = "Single icon";
+"settings.onePerProvider" = "One per provider";
+"settings.refreshEvery" = "Refresh every";
+"settings.notify" = "Notify at 70% / 90%";
+"settings.launchAtLogin" = "Launch at login";
+"settings.quit" = "Quit LLMeter";
+"settings.language" = "Language";
+
+/* Provider grid */
+"provider.unavailable" = "Unavailable";
+"provider.noData" = "No data for %@.";
+
+/* Notifications */
+"notif.title" = "%1$@ %2$@ at %3$d%%";
+"notif.body" = "You've crossed %d%% of this window.";
+
+/* Language picker */
+"language.system" = "System";

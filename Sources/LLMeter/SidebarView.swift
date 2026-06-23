@@ -13,12 +13,12 @@ struct SidebarView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            item(.overview, "OVERVIEW", "gauge.with.dots.needle.50percent")
+            item(.overview, L("sidebar.overview"), "gauge.with.dots.needle.50percent")
             item(.provider(.codex), "CODEX", "chevron.left.forwardslash.chevron.right")
             item(.provider(.claude), "CLAUDE", "sparkles")
             Spacer()
-            item(.accounts, "ACCOUNTS", "person.crop.circle")
-            item(.settings, "SETTINGS", "slider.horizontal.3")
+            item(.accounts, L("sidebar.accounts"), "person.crop.circle")
+            item(.settings, L("sidebar.settings"), "slider.horizontal.3")
         }
         .padding(10)
         .frame(width: 158)

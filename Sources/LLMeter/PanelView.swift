@@ -7,7 +7,7 @@ struct PanelView: View {
     @Bindable var settings: SettingsModel
     let codexStore: CodexCredentialStore
     let login: CodexLoginService
-    @State private var selection: PanelSection = .overview
+    @Binding var selection: PanelSection
 
     var body: some View {
         HStack(spacing: 0) {
@@ -22,6 +22,8 @@ struct PanelView: View {
         }
         .frame(width: 560, height: 380)
         .task { await store.refresh() }
+        // Rebuild the whole panel when the language changes so every L(...) re-resolves.
+        .id(LocalizationManager.shared.language)
     }
 
     private var header: some View {
@@ -53,10 +55,10 @@ struct PanelView: View {
 
     private var title: String {
         switch selection {
-        case .overview: return "Overview"
+        case .overview: return L("panel.overview")
         case .provider(let p): return p.displayName
-        case .accounts: return "Accounts"
-        case .settings: return "Settings"
+        case .accounts: return L("panel.accounts")
+        case .settings: return L("panel.settings")
         }
     }
 }

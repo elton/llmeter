@@ -5,6 +5,9 @@ import LLMeterCore
 @main
 struct LLMeterApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
+    // Owned here, above PanelView's language `.id`, so switching language (which
+    // rebuilds the panel subtree) doesn't reset which section is selected.
+    @State private var selection: PanelSection = .overview
 
     var body: some Scene {
         // Single-icon mode: one combined gauge.
@@ -33,7 +36,8 @@ struct LLMeterApp: App {
 
     private var panel: some View {
         PanelView(store: delegate.store, settings: delegate.settings,
-                  codexStore: delegate.codexStore, login: delegate.login)
+                  codexStore: delegate.codexStore, login: delegate.login,
+                  selection: $selection)
     }
 
     private var isSingle: Bool { delegate.settings.settings.displayMode == .singleIcon }
@@ -67,6 +71,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         )
         super.init()
+        // Load the persisted language into Localizer before any L(...) runs. The
+        // shared LocalizationManager is otherwise lazy, so a saved non-system
+        // language wouldn't apply until the panel/settings first touched it.
+        _ = LocalizationManager.shared
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {

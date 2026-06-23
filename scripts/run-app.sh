@@ -24,8 +24,15 @@ APP="$BIN_DIR/LLMeter.app"
 MACOS="$APP/Contents/MacOS"
 
 rm -rf "$APP"
-mkdir -p "$MACOS"
+mkdir -p "$MACOS" "$APP/Contents/Resources"
 cp "$BIN" "$MACOS/LLMeter"
+
+# Copy SPM resource bundles (localization .lproj live inside) to the app's
+# Resources dir, where Bundle.module resolves them. Without this the menu-bar
+# app shows English only.
+for b in "$BIN_DIR"/*.bundle; do
+    [ -e "$b" ] && cp -R "$b" "$APP/Contents/Resources/"
+done
 
 cat > "$APP/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>

@@ -17,8 +17,8 @@ struct ProviderGridView: View {
                 }
                 .padding(14)
             } else {
-                ContentUnavailableView("Unavailable", systemImage: "wifi.slash",
-                                       description: Text("No data for \(provider.displayName)."))
+                ContentUnavailableView(L("provider.unavailable"), systemImage: "wifi.slash",
+                                       description: Text(L("provider.noData", provider.displayName)))
                     .padding(.top, 60)
             }
         }

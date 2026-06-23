@@ -18,8 +18,8 @@ enum Notifier {
         guard isAvailable else { return }
         for alert in alerts {
             let content = UNMutableNotificationContent()
-            content.title = "\(alert.provider.displayName) \(alert.windowLabel) at \(Int(alert.percent))%"
-            content.body = "You've crossed \(alert.threshold)% of this window."
+            content.title = L("notif.title", alert.provider.displayName, alert.windowLabel, Int(alert.percent))
+            content.body = L("notif.body", alert.threshold)
             let request = UNNotificationRequest(identifier: "\(alert.id)-\(Int(alert.percent))",
                                                 content: content, trigger: nil)
             UNUserNotificationCenter.current().add(request)

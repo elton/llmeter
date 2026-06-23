@@ -1,0 +1,40 @@
+/* Sidebar */
+"sidebar.overview" = "概要";
+"sidebar.accounts" = "アカウント";
+"sidebar.settings" = "設定";
+
+/* Panel titles */
+"panel.overview" = "概要";
+"panel.accounts" = "アカウント";
+"panel.settings" = "設定";
+
+/* Accounts */
+"accounts.account" = "アカウント";
+"accounts.tokenExpires" = "トークン有効期限";
+"accounts.signOut" = "サインアウト";
+"accounts.notSignedIn" = "未サインイン — Codex CLI のログインがあれば使用します。";
+"accounts.signIn" = "ChatGPT でサインイン";
+"accounts.reauthenticate" = "再認証";
+"accounts.waitingLogin" = "ブラウザのログインを待っています…";
+"accounts.claudeLocal" = "ローカルログ — サインイン不要。";
+
+/* Settings */
+"settings.menuBar" = "メニューバー";
+"settings.singleIcon" = "単一アイコン";
+"settings.onePerProvider" = "サービスごとに1つ";
+"settings.refreshEvery" = "更新間隔";
+"settings.notify" = "70% / 90% で通知";
+"settings.launchAtLogin" = "ログイン時に起動";
+"settings.quit" = "LLMeter を終了";
+"settings.language" = "言語";
+
+/* Provider grid */
+"provider.unavailable" = "利用不可";
+"provider.noData" = "%@ のデータがありません。";
+
+/* Notifications */
+"notif.title" = "%1$@ %2$@ が %3$d%%";
+"notif.body" = "この期間の %d%% を超えました。";
+
+/* Language picker */
+"language.system" = "システムに従う";

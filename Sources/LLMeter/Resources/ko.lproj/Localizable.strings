@@ -1,0 +1,40 @@
+/* Sidebar */
+"sidebar.overview" = "개요";
+"sidebar.accounts" = "계정";
+"sidebar.settings" = "설정";
+
+/* Panel titles */
+"panel.overview" = "개요";
+"panel.accounts" = "계정";
+"panel.settings" = "설정";
+
+/* Accounts */
+"accounts.account" = "계정";
+"accounts.tokenExpires" = "토큰 만료";
+"accounts.signOut" = "로그아웃";
+"accounts.notSignedIn" = "로그인되지 않음 — Codex CLI 로그인이 있으면 사용합니다.";
+"accounts.signIn" = "ChatGPT로 로그인";
+"accounts.reauthenticate" = "재인증";
+"accounts.waitingLogin" = "브라우저 로그인 대기 중…";
+"accounts.claudeLocal" = "로컬 로그 — 로그인 불필요.";
+
+/* Settings */
+"settings.menuBar" = "메뉴 막대";
+"settings.singleIcon" = "단일 아이콘";
+"settings.onePerProvider" = "서비스별 하나";
+"settings.refreshEvery" = "새로 고침 간격";
+"settings.notify" = "70% / 90%에서 알림";
+"settings.launchAtLogin" = "로그인 시 실행";
+"settings.quit" = "LLMeter 종료";
+"settings.language" = "언어";
+
+/* Provider grid */
+"provider.unavailable" = "사용 불가";
+"provider.noData" = "%@ 데이터가 없습니다.";
+
+/* Notifications */
+"notif.title" = "%1$@ %2$@ %3$d%% 도달";
+"notif.body" = "이 기간의 %d%%를 초과했습니다.";
+
+/* Language picker */
+"language.system" = "시스템 따름";

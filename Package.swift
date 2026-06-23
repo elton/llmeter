@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "LLMeter",
+    defaultLocalization: "en",
     platforms: [.macOS(.v14)],
     products: [
         .library(name: "LLMeterCore", targets: ["LLMeterCore"]),
@@ -14,7 +15,8 @@ let package = Package(
         .target(name: "LLMeterCore"),
         .executableTarget(name: "llmeter-probe", dependencies: ["LLMeterCore"]),
         .executableTarget(name: "llmeter-login", dependencies: ["LLMeterCore"]),
-        .executableTarget(name: "LLMeter", dependencies: ["LLMeterCore"]),
+        .executableTarget(name: "LLMeter", dependencies: ["LLMeterCore"],
+                          resources: [.process("Resources")]),
         .testTarget(
             name: "LLMeterCoreTests",
             dependencies: ["LLMeterCore"],
