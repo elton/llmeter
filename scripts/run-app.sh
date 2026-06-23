@@ -27,14 +27,18 @@ rm -rf "$APP"
 mkdir -p "$MACOS"
 cp "$BIN" "$MACOS/LLMeter"
 
-# SwiftPM's generated Bundle.module looks for <exe>_<target>.bundle at
-# Bundle.main.bundleURL — which for a .app is the .app directory itself, NOT
-# Contents/Resources. Copy resource bundles (localization .lproj live inside) to
-# the .app root so the wrapped app is self-contained (otherwise it only works on
-# this machine via the hard-coded .build fallback path, and crashes elsewhere).
+# Resource bundles (localization .lproj live inside) go in the STANDARD
+# Contents/Resources location. A bundle in the .app root is "unsealed content"
+# that makes codesign fail → the app gets an unstable/ad-hoc identity → macOS
+# re-prompts for the keychain on every launch. With the bundle in Contents/Resources
+# the .app signs cleanly; Bundle.module then resolves the resources via SwiftPM's
+# built-in .build fallback path, which is always present on this dev machine
+# (run-app.sh rebuilds every run). For distribution (M4) the bundles are placed by
+# the signing/notarization pipeline, not this script.
+mkdir -p "$APP/Contents/Resources"
 for b in "$BIN_DIR"/*.bundle; do
     case "$b" in *Tests.bundle) continue ;; esac   # skip test resource bundles
-    [ -e "$b" ] && cp -R "$b" "$APP/"
+    [ -e "$b" ] && cp -R "$b" "$APP/Contents/Resources/"
 done
 
 cat > "$APP/Contents/Info.plist" <<'PLIST'
@@ -64,8 +68,31 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 </plist>
 PLIST
 
-# Ad-hoc sign so the keychain/UserNotifications entitlements behave consistently.
-codesign --force --sign - "$APP" >/dev/null 2>&1 || true
+# Sign with a persistent self-signed certificate so the code-signing identity is
+# STABLE across rebuilds. Keychain ACLs ("Always Allow") bind to the signature's
+# designated requirement: an ad-hoc signature's requirement is the cdhash (changes
+# every rebuild → macOS re-prompts for the keychain every launch), whereas a named
+# certificate's requirement is the cert identity (constant), so "Always Allow"
+# sticks. Created once, reused thereafter; falls back to ad-hoc if unavailable.
+CERT_CN="LLMeter Dev Signing"
+if ! security find-certificate -c "$CERT_CN" >/dev/null 2>&1; then
+    echo "▶︎ Creating a one-time self-signed code-signing certificate ($CERT_CN)…"
+    work="$(mktemp -d)"
+    openssl req -x509 -newkey rsa:2048 -nodes -keyout "$work/key.pem" -out "$work/cert.pem" \
+        -days 3650 -subj "/CN=$CERT_CN" \
+        -addext "keyUsage=critical,digitalSignature" \
+        -addext "extendedKeyUsage=critical,codeSigning" \
+        -addext "basicConstraints=critical,CA:false" >/dev/null 2>&1
+    # -legacy: macOS security(1) can't read openssl 3's default PKCS#12 algorithms.
+    openssl pkcs12 -export -legacy -inkey "$work/key.pem" -in "$work/cert.pem" \
+        -out "$work/id.p12" -passout pass:llmeter >/dev/null 2>&1
+    security import "$work/id.p12" -k "$HOME/Library/Keychains/login.keychain-db" \
+        -P llmeter -A >/dev/null 2>&1 || true
+    rm -rf "$work"
+fi
+if ! codesign --force --sign "$CERT_CN" "$APP" >/dev/null 2>&1; then
+    codesign --force --sign - "$APP" >/dev/null 2>&1 || true   # fall back to ad-hoc
+fi
 
 echo "▶︎ Relaunching…"
 pkill -x LLMeter 2>/dev/null || true
