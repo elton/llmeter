@@ -42,7 +42,34 @@ Codex 侧：OpenAI 未作等同限制（CLI 为 Apache-2.0、官方表示可 for
 
 ## 开发
 
-需要 macOS 14+ 与 Xcode。
+需要 macOS 14+ 与较新的 Swift 工具链（仓库使用 `swift-tools-version: 6.3`，随最新 Xcode 一起安装即可）。
+
+### 构建与测试
+
+```bash
+swift test     # 运行全套单元测试（swift-testing），保持全绿
+swift build    # 仅编译
+```
+
+### 本地运行菜单栏 App
+
+菜单栏 App 用到 SwiftUI 的 `MenuBarExtra` 与系统通知，二者都要求进程是带 bundle id 的 `.app`。直接 `swift run LLMeter` 跑裸可执行文件会**看不到菜单栏图标、通知也不生效**，所以请用随仓库提供的脚本把产物包装成最小 `.app` 再启动：
+
+```bash
+./scripts/run-app.sh            # debug 构建并启动
+./scripts/run-app.sh release    # release 构建并启动
+```
+
+启动后 App 不在 Dock 显示，只在屏幕右上角菜单栏出现一个会变色的表盘图标（🟢 充裕 / 🟠 偏高 / 🔴 紧张），点开即配额面板。退出：在面板里退出，或在终端运行 `pkill -x LLMeter`。
+
+App 会读取本机的 `~/.codex` 与 `~/.claude` 数据，需先在本机用过 Codex CLI / Claude Code 才能看到真实用量。
+
+### 命令行端到端检查
+
+```bash
+swift run llmeter-probe    # 直接打印实时 Codex 配额 + 本地 Claude 用量
+swift run llmeter-login    # Codex OAuth 登录辅助流程
+```
 
 ## 许可证
 
