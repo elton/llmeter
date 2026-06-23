@@ -24,14 +24,16 @@ APP="$BIN_DIR/LLMeter.app"
 MACOS="$APP/Contents/MacOS"
 
 rm -rf "$APP"
-mkdir -p "$MACOS" "$APP/Contents/Resources"
+mkdir -p "$MACOS"
 cp "$BIN" "$MACOS/LLMeter"
 
-# Copy SPM resource bundles (localization .lproj live inside) to the app's
-# Resources dir, where Bundle.module resolves them. Without this the menu-bar
-# app shows English only.
+# SwiftPM's generated Bundle.module looks for <exe>_<target>.bundle at
+# Bundle.main.bundleURL — which for a .app is the .app directory itself, NOT
+# Contents/Resources. Copy resource bundles (localization .lproj live inside) to
+# the .app root so the wrapped app is self-contained (otherwise it only works on
+# this machine via the hard-coded .build fallback path, and crashes elsewhere).
 for b in "$BIN_DIR"/*.bundle; do
-    [ -e "$b" ] && cp -R "$b" "$APP/Contents/Resources/"
+    [ -e "$b" ] && cp -R "$b" "$APP/"
 done
 
 cat > "$APP/Contents/Info.plist" <<'PLIST'
