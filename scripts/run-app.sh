@@ -68,31 +68,13 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 </plist>
 PLIST
 
-# Sign with a persistent self-signed certificate so the code-signing identity is
-# STABLE across rebuilds. Keychain ACLs ("Always Allow") bind to the signature's
-# designated requirement: an ad-hoc signature's requirement is the cdhash (changes
-# every rebuild → macOS re-prompts for the keychain every launch), whereas a named
-# certificate's requirement is the cert identity (constant), so "Always Allow"
-# sticks. Created once, reused thereafter; falls back to ad-hoc if unavailable.
-CERT_CN="LLMeter Dev Signing"
-if ! security find-certificate -c "$CERT_CN" >/dev/null 2>&1; then
-    echo "▶︎ Creating a one-time self-signed code-signing certificate ($CERT_CN)…"
-    work="$(mktemp -d)"
-    openssl req -x509 -newkey rsa:2048 -nodes -keyout "$work/key.pem" -out "$work/cert.pem" \
-        -days 3650 -subj "/CN=$CERT_CN" \
-        -addext "keyUsage=critical,digitalSignature" \
-        -addext "extendedKeyUsage=critical,codeSigning" \
-        -addext "basicConstraints=critical,CA:false" >/dev/null 2>&1
-    # -legacy: macOS security(1) can't read openssl 3's default PKCS#12 algorithms.
-    openssl pkcs12 -export -legacy -inkey "$work/key.pem" -in "$work/cert.pem" \
-        -out "$work/id.p12" -passout pass:llmeter >/dev/null 2>&1
-    security import "$work/id.p12" -k "$HOME/Library/Keychains/login.keychain-db" \
-        -P llmeter -A >/dev/null 2>&1 || true
-    rm -rf "$work"
-fi
-if ! codesign --force --sign "$CERT_CN" "$APP" >/dev/null 2>&1; then
-    codesign --force --sign - "$APP" >/dev/null 2>&1 || true   # fall back to ad-hoc
-fi
+# Ad-hoc sign so the .app carries a code signature; the standard Contents/Resources
+# layout above keeps codesign from failing on "unsealed" root content. By default the
+# app has no app-OAuth keychain item and reads the Codex CLI credentials in ~/.codex,
+# so the unstable ad-hoc identity does not trigger repeated keychain prompts. (Only an
+# in-app "Sign in with ChatGPT" would store a keychain token; a stable, trusted
+# signature for that case comes with distribution signing/notarization in M4.)
+codesign --force --sign - "$APP" >/dev/null 2>&1 || true
 
 echo "▶︎ Relaunching…"
 pkill -x LLMeter 2>/dev/null || true
