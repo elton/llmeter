@@ -51,6 +51,14 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
   <key>CFBundleVersion</key><string>1</string>
   <key>LSMinimumSystemVersion</key><string>14.0</string>
   <key>LSUIElement</key><true/>
+  <key>CFBundleDevelopmentRegion</key><string>en</string>
+  <key>CFBundleLocalizations</key>
+  <array>
+    <string>en</string>
+    <string>zh-Hans</string>
+    <string>ja</string>
+    <string>ko</string>
+  </array>
   <key>NSHumanReadableCopyright</key><string>© 2026 Elton Zheng</string>
 </dict>
 </plist>

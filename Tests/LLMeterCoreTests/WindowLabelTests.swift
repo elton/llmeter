@@ -3,8 +3,9 @@ import Foundation
 @testable import LLMeterCore
 
 struct WindowLabelTests {
-    // Default (system) language resolves to the English base bundle in tests.
-    init() { Localizer.shared.setCode(nil) }
+    // Pin English so titles are language-stable regardless of the test host's
+    // system language (system mode now follows the OS preferred languages).
+    init() { Localizer.shared.setCode("en") }
 
     @Test func mapsWindowKindToLocalizedTitle() {
         #expect(WindowLabel.localizedTitle(kind: .fiveHour, label: "5h") == "5-HOUR")

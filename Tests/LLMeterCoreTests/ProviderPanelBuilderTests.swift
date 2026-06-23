@@ -4,6 +4,9 @@ import Foundation
 
 struct ProviderPanelBuilderTests {
     private let now = Date(timeIntervalSince1970: 1_782_000_000)
+    // Pin English so assertions are language-stable regardless of the test host's
+    // system language (system mode now follows the OS preferred languages).
+    init() { Localizer.shared.setCode("en") }
 
     @Test func codexProducesGaugeCardsPlusPlanAndCredits() {
         let snap = UsageSnapshot(provider: .codex, planType: "prolite", windows: [

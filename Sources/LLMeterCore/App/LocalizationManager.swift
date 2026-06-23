@@ -21,19 +21,46 @@ public final class Localizer: @unchecked Sendable {
     private func currentCode() -> String? { lock.withLock { code } }
 
     public func localize(_ key: String, bundle: Bundle) -> String {
-        if let code = currentCode() {
-            // Try the exact code, then the lowercase variant — SwiftPM lowercases the
-            // region subtag (zh-Hans → zh-hans). Identical codes just hit on the first.
-            let missing = "\u{0}llmeter.missing\u{0}"
-            for candidate in [code, code.lowercased()] {
-                guard let path = bundle.path(forResource: candidate, ofType: "lproj"),
-                      let langBundle = Bundle(path: path) else { continue }
-                let value = langBundle.localizedString(forKey: key, value: missing, table: nil)
-                if value != missing { return value }
-                break  // lproj exists but lacks the key → fall back to the base bundle
-            }
+        let code = currentCode()
+        let manual = code != nil
+        // Manual: the chosen language (+ lowercase region variant, since SwiftPM
+        // lowercases zh-Hans → zh-hans). System: the OS preferred languages, matched
+        // against the available lprojs ourselves — Bundle's own resolution keys off
+        // the main bundle's CFBundleLocalizations, which a hand-assembled .app lacks,
+        // so it would otherwise fall back to English even on a Chinese system.
+        let candidates: [String]
+        if let code {
+            candidates = code == code.lowercased() ? [code] : [code, code.lowercased()]
+        } else {
+            candidates = Self.systemCandidates()
+        }
+        let missing = "\u{0}llmeter.missing\u{0}"
+        for candidate in candidates {
+            guard let path = bundle.path(forResource: candidate, ofType: "lproj"),
+                  let langBundle = Bundle(path: path) else { continue }
+            let value = langBundle.localizedString(forKey: key, value: missing, table: nil)
+            if value != missing { return value }
+            if manual { break }  // manual: key absent → base bundle; system: try next language
         }
         return bundle.localizedString(forKey: key, value: key, table: nil)
+    }
+
+    /// OS preferred languages expanded to lproj-name candidates, most-specific first:
+    /// "zh-Hans-JP" → zh-Hans-JP, zh-hans-jp, zh-Hans, zh-hans, zh.
+    private static func systemCandidates() -> [String] {
+        var out: [String] = []
+        for tag in Locale.preferredLanguages {
+            let parts = tag.split(separator: "-").map(String.init)
+            var n = parts.count
+            while n >= 1 {
+                let prefix = parts.prefix(n).joined(separator: "-")
+                out.append(prefix)
+                let lower = prefix.lowercased()
+                if lower != prefix { out.append(lower) }
+                n -= 1
+            }
+        }
+        return out
     }
 }
 
